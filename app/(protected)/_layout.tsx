@@ -14,7 +14,7 @@ export default function ProtectedLayout() {
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Tabs>
         <Tabs.Screen
-          name="index"
+          name="home"
           options={{ headerShown: false, title: "Home" }}
         />
         <Tabs.Screen

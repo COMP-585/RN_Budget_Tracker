@@ -8,22 +8,19 @@ import { useColorScheme } from "nativewind";
 import React from "react";
 
 const isLoggedIn = false; // Replace with your auth logic
-const shouldCreateAccount = false; // Replace with your logic
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
+  setColorScheme("dark");
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? "light"]}>
+    <ThemeProvider value={NAV_THEME[colorScheme ?? "dark"]}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Stack>
         <Stack.Protected guard={isLoggedIn}>
           <Stack.Screen name="(protected)" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!isLoggedIn}>
-          <Stack.Screen name="sign-in" />
-          <Stack.Protected guard={shouldCreateAccount}>
-            <Stack.Screen name="create-account" />
-          </Stack.Protected>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
       <PortalHost />
