@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Link } from "expo-router";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -25,9 +26,11 @@ export default function LandingScreen() {
           />
         </View>
         <View style={styles.btnContainer}>
-          <Button style={styles.button}>
-            <Text>Sign Up</Text>
-          </Button>
+          <Link href="/signup" push asChild>
+            <Button style={styles.button}>
+              <Text>Sign Up</Text>
+            </Button>
+          </Link>
           <Button variant={"secondary"} style={styles.button}>
             <Text>Log In</Text>
           </Button>
@@ -41,9 +44,9 @@ const styles = StyleSheet.create({
   btnContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 32,
+    gap: 16,
   },
   button: {
     flexGrow: 1,
-  }
+  },
 });
