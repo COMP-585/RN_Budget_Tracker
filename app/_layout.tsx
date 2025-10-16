@@ -13,13 +13,15 @@ export default function RootLayout() {
   const isLoggedIn = user !== null;
   const { colorScheme, setColorScheme } = useColorScheme();
   setColorScheme("dark");
+
   return (
     <ThemeProvider value={NAV_THEME[colorScheme ?? "dark"]}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Stack>
-        <Stack.Protected guard={isLoggedIn}>
+        <Stack.Protected guard={isLoggedIn && !loading}>
           <Stack.Screen name="(protected)" options={{ headerShown: false }} />
         </Stack.Protected>
+        <Stack.Protected guard={loading}></Stack.Protected>
         <Stack.Protected guard={!isLoggedIn}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
         </Stack.Protected>
