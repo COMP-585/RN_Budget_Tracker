@@ -31,12 +31,20 @@ export default function GoalsScreen() {
         Your Goals
       </Text>
 
-      <FlatList
-        data={goals}
-        renderItem={renderGoal}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-      />
+      {goals.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: theme.muted }]}>
+            You don’t have any goals yet. Tap the + button to add one!
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={goals}
+          renderItem={renderGoal}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
 
       {/* Floating Add Button */}
       <TouchableOpacity
@@ -73,6 +81,15 @@ const styles = StyleSheet.create({
   goalText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+    emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: "center",
   },
   floatingButton: {
     position: "absolute",
