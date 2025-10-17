@@ -17,13 +17,17 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={NAV_THEME[colorScheme ?? "dark"]}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-      <Stack>
+      {/* gestureEnabled determines swiping back feature within Stack but can be individual */}
+      <Stack screenOptions={{ gestureEnabled: false }}>
         <Stack.Protected guard={isLoggedIn && !loading}>
           <Stack.Screen name="(protected)" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={loading}></Stack.Protected>
         <Stack.Protected guard={!isLoggedIn}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!isLoggedIn}>
+          <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
         </Stack.Protected>
       </Stack>
       <PortalHost />

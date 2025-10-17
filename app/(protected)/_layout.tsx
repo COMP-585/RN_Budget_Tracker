@@ -18,6 +18,10 @@ export default function ProtectedLayout() {
           options={{ headerShown: false, title: "Home" }}
         />
         <Tabs.Screen
+          name="goals"
+          options={{ headerShown: false, title: "Goals" }}
+        />
+        <Tabs.Screen
           name="settings"
           options={{ headerShown: false, title: "Settings" }}
         />
