@@ -6,7 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -29,6 +29,9 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const { user, loading } = useAuth();
+
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const signUp = async () => {
     try {
@@ -142,6 +145,9 @@ export default function AuthScreen() {
             placeholderTextColor={theme.mutedForeground}
             value={email}
             onChangeText={setEmail}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            blurOnSubmit={false}
           />
 
           <TextInput
@@ -153,11 +159,16 @@ export default function AuthScreen() {
                 backgroundColor: theme.card,
               },
             ]}
+            ref={passwordRef}
             placeholder="Password"
             placeholderTextColor={theme.mutedForeground}
             secureTextEntry
             value={password}
             onChangeText={setPassword}
+            returnKeyType={activeTab === "login" ? "done" : "next"}
+            onSubmitEditing={
+              activeTab === "login" ? signIn : confirmPasswordRef.current?.focus
+            }
           />
 
           {/* Forgot password button - only for Login */}
@@ -183,11 +194,14 @@ export default function AuthScreen() {
                   backgroundColor: theme.card,
                 },
               ]}
+              ref={confirmPasswordRef}
               placeholder="Confirm Password"
               placeholderTextColor={theme.mutedForeground}
               secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
+              returnKeyType="done"
+              onSubmitEditing={signUp}
             />
           )}
         </View>
