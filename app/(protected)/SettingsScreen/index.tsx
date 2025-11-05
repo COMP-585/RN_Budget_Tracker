@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, View, Alert } from "react-native";
 import { Link } from "expo-router";
 import { Image as ExpoImage } from "expo-image";
 
@@ -10,7 +10,7 @@ import SettingsItem from "@/components/settings/SettingsItem";
 
 import useAuthStore from "@/lib/authStore";
 import { auth } from "@/FirebaseConfig";
-import { signOut, deleteUser } from "firebase/auth";
+import { signOut, deleteUser, sendPasswordResetEmail } from "firebase/auth";
 
 import {
   LogOut,
@@ -33,6 +33,22 @@ export default function SettingsScreen() {
     const sep = u.includes("?") ? "&" : "?";
     return `${u}${sep}cb=${Date.now()}`;
   }, [user?.photoURL]);
+
+   const handleChangePassword = async () => {
+      if (!user?.email) {
+        Alert.alert("No email", "Your account does not have an email to reset.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, user.email);
+        Alert.alert(
+          "Password reset sent",
+          `We sent a password reset link to ${user.email}. Check your inbox.`
+        );
+      } catch (err: any) {
+        Alert.alert("Error", err?.message ?? "Could not send password reset email.");
+      }
+    };
 
   return (
     <ScrollView
@@ -78,7 +94,7 @@ export default function SettingsScreen() {
         <SettingsItem
           label="Change Password"
           leftIcon={<KeyRound size={18} />}
-          onPress={() => {}}
+          onPress={handleChangePassword}
         />
         <View className="h-px bg-border/50 mx-4" />
 

@@ -5,6 +5,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
+import { Home, Settings, Target } from "lucide-react-native";
 import React from "react";
 
 export default function ProtectedLayout() {
@@ -15,15 +16,24 @@ export default function ProtectedLayout() {
       <Tabs>
         <Tabs.Screen
           name="home"
-          options={{ headerShown: false, title: "Home" }}
+          options={{ headerShown: false, title: "Home",
+                     tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+
+           }}
         />
         <Tabs.Screen
           name="goals"
-          options={{ headerShown: false, title: "Goals" }}
+          options={{ headerShown: false, title: "Goals",
+                     tabBarIcon: ({ color, size }) => <Target color={color} size={size} />,
+
+           }}
         />
         <Tabs.Screen
           name="SettingsScreen"
-          options={{ headerShown: false, title: "Settings" }}
+          options={{ headerShown: false, title: "Settings",
+                     tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+
+           }}
         />
       </Tabs>
       <PortalHost />
