@@ -18,7 +18,7 @@ export default function ProtectedLayout() {
           options={{ headerShown: false, title: "Home" }}
         />
         <Tabs.Screen
-          name="goals"
+          name="GoalsScreen"
           options={{ headerShown: false, title: "Goals" }}
         />
         <Tabs.Screen
