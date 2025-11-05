@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { useColorScheme } from "nativewind";
 import React, { useState } from "react";
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Alert } from "react-native";
 
 export default function ForgotPasswordScreen() {
   const { colorScheme } = useColorScheme();

@@ -2,6 +2,9 @@ import { Image as ExpoImage } from "expo-image";
 import { Link } from "expo-router";
 import React, { useMemo } from "react";
 import { Appearance, ScrollView, useColorScheme, View } from "react-native";
+import { ScrollView, View, Alert } from "react-native";
+import { Link } from "expo-router";
+import { Image as ExpoImage } from "expo-image";
 
 import SettingsCard from "@/components/settings/SettingsCard";
 import SettingsItem from "@/components/settings/SettingsItem";
@@ -11,6 +14,8 @@ import { Text } from "@/components/ui/text";
 import { auth } from "@/FirebaseConfig";
 import useAuthStore from "@/lib/authStore";
 import { deleteUser, signOut } from "firebase/auth";
+import { auth } from "@/FirebaseConfig";
+import { signOut, deleteUser, sendPasswordResetEmail } from "firebase/auth";
 
 import { THEME } from "@/lib/theme";
 import {
@@ -36,6 +41,22 @@ export default function SettingsScreen() {
     const sep = u.includes("?") ? "&" : "?";
     return `${u}${sep}cb=${Date.now()}`;
   }, [user?.photoURL]);
+
+   const handleChangePassword = async () => {
+      if (!user?.email) {
+        Alert.alert("No email", "Your account does not have an email to reset.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, user.email);
+        Alert.alert(
+          "Password reset sent",
+          `We sent a password reset link to ${user.email}. Check your inbox.`
+        );
+      } catch (err: any) {
+        Alert.alert("Error", err?.message ?? "Could not send password reset email.");
+      }
+    };
 
   const colorScheme = useColorScheme();
   const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
@@ -92,8 +113,8 @@ export default function SettingsScreen() {
 
         <SettingsItem
           label="Change Password"
-          leftIcon={<KeyRound size={18} color={theme.foreground} />}
-          onPress={() => {}}
+          leftIcon={<KeyRound size={18} />}
+          onPress={handleChangePassword}
         />
         <View className="h-px bg-border/50 mx-4" />
 
