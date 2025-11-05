@@ -1,6 +1,7 @@
 import { auth } from "@/FirebaseConfig";
 import { THEME } from "@/lib/theme";
 import { useAuth } from "@/lib/useAuth";
+import { router } from "expo-router";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -174,7 +175,7 @@ export default function AuthScreen() {
           {activeTab === "login" && (
             <TouchableOpacity
               style={styles.forgotContainer}
-              onPress={() => console.log("Forgot Password pressed")}
+              onPress={() => router.push('/forgot-password')}
             >
               <Text style={[styles.forgotText, { color: theme.primary }]}>
                 Forgot Password?
