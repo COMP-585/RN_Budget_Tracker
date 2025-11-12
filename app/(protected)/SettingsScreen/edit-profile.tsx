@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import useAuthStore from "@/lib/authStore";
 import { auth } from "@/FirebaseConfig";
 import { Image as ExpoImage } from "expo-image";
+import Toast from "react-native-toast-message";
 
 const isLikelyPublicImage = (u: string) => /^https:\/\/.+/i.test((u ?? "").trim());
 
@@ -36,7 +37,12 @@ export default function EditProfile() {
     if (!auth?.currentUser) return Alert.alert("Not signed in");
 
     if (photoURL && !isLikelyPublicImage(photoURL)) {
-      return Alert.alert("Invalid URL", "Use a public HTTPS image URL.");
+        Toast.show({
+                      type: "error",
+                      text1: "Invalid URL",
+                      text2: "Please use a public url!",
+                    });
+      return;
     }
 
     try {
@@ -73,9 +79,17 @@ export default function EditProfile() {
       // Push the updated user into Zustand so Settings reads the new photoURL
       setUser(auth.currentUser as any);
       setPreviewError(null);
-      Alert.alert("Success", "Profile updated");
-    } catch (e: any) {
-      Alert.alert("Update failed", e?.message ?? "Unknown error");
+      Toast.show({
+                    type: "success",
+                    text1: "Profile update",
+                    text2: "Your new profile changes have been saved successfully",
+                  });
+    } catch (error: any) {
+      Toast.show({
+                    type: "error",
+                    text1: "Error in updating profile",
+                    text2: error.text,
+                  });;
     } finally {
       setSaving(false);
     }
@@ -83,6 +97,8 @@ export default function EditProfile() {
 
   // White text for inputs (NativeWind sometimes doesn’t apply to TextInput)
   const inputStyle = { color: "#fff" } as const;
+
+
 
   return (
     <KeyboardAvoidingView

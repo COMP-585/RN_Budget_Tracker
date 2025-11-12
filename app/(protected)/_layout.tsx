@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import { Home, Settings, Target } from "lucide-react-native";
 import React from "react";
+import Toast from  "react-native-toast-message"
 
 export default function ProtectedLayout() {
   const { colorScheme } = useColorScheme();
@@ -22,7 +23,7 @@ export default function ProtectedLayout() {
            }}
         />
         <Tabs.Screen
-          name="goals"
+          name="GoalsScreen"
           options={{ headerShown: false, title: "Goals",
                      tabBarIcon: ({ color, size }) => <Target color={color} size={size} />,
 
@@ -36,6 +37,7 @@ export default function ProtectedLayout() {
            }}
         />
       </Tabs>
+      <Toast position="top" topOffset={50} />
       <PortalHost />
     </ThemeProvider>
   );
