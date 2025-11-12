@@ -1,21 +1,14 @@
-import { Button } from "@/components/ui/button";
-import { Text } from "@/components/ui/text";
-import { auth } from "@/FirebaseConfig";
-import useAuthStore from "@/lib/authStore";
-import { Image as ExpoImage } from "expo-image";
-import React, { useMemo, useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Text as RNText,
-  ScrollView,
-  TextInput,
-  View,
-} from "react-native";
 
-const isLikelyPublicImage = (u: string) =>
-  /^https:\/\/.+/i.test((u ?? "").trim());
+import React, { useMemo, useState } from "react";
+import { View, Alert, TextInput, Text as RNText, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { Text } from "@/components/ui/text";
+import { Button } from "@/components/ui/button";
+import useAuthStore from "@/lib/authStore";
+import { auth } from "@/FirebaseConfig";
+import { Image as ExpoImage } from "expo-image";
+import Toast from "react-native-toast-message";
+
+const isLikelyPublicImage = (u: string) => /^https:\/\/.+/i.test((u ?? "").trim());
 
 export default function EditProfile() {
   const { user, setUser } = useAuthStore();
@@ -44,7 +37,12 @@ export default function EditProfile() {
     if (!auth?.currentUser) return Alert.alert("Not signed in");
 
     if (photoURL && !isLikelyPublicImage(photoURL)) {
-      return Alert.alert("Invalid URL", "Use a public HTTPS image URL.");
+        Toast.show({
+                      type: "error",
+                      text1: "Invalid URL",
+                      text2: "Please use a public url!",
+                    });
+      return;
     }
 
     try {
@@ -81,9 +79,17 @@ export default function EditProfile() {
       // Push the updated user into Zustand so Settings reads the new photoURL
       setUser(auth.currentUser as any);
       setPreviewError(null);
-      Alert.alert("Success", "Profile updated");
-    } catch (e: any) {
-      Alert.alert("Update failed", e?.message ?? "Unknown error");
+      Toast.show({
+                    type: "success",
+                    text1: "Profile update",
+                    text2: "Your new profile changes have been saved successfully",
+                  });
+    } catch (error: any) {
+      Toast.show({
+                    type: "error",
+                    text1: "Error in updating profile",
+                    text2: error.text,
+                  });;
     } finally {
       setSaving(false);
     }
@@ -91,6 +97,8 @@ export default function EditProfile() {
 
   // White text for inputs (NativeWind sometimes doesn’t apply to TextInput)
   const inputStyle = { color: "#fff" } as const;
+
+
 
   return (
     <KeyboardAvoidingView
@@ -111,12 +119,7 @@ export default function EditProfile() {
               <ExpoImage
                 key={userHeaderUri}
                 source={{ uri: userHeaderUri }}
-                style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 9999,
-                  backgroundColor: "#eee",
-                }}
+                style={{ width: 96, height: 96, borderRadius: 9999, backgroundColor: "#eee" }}
                 contentFit="cover"
                 cachePolicy="none"
               />
@@ -128,20 +131,13 @@ export default function EditProfile() {
 
         {/* Live preview of NEW URL */}
         <View className="items-center gap-2">
-          <Text className="text-sm text-muted-foreground">
-            Preview of the NEW URL below
-          </Text>
+          <Text className="text-sm text-muted-foreground">Preview of the NEW URL below</Text>
           <View className="w-24 h-24 rounded-full bg-primary/10 items-center justify-center overflow-hidden">
             {previewUri ? (
               <ExpoImage
                 key={previewUri}
                 source={{ uri: previewUri }}
-                style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 9999,
-                  backgroundColor: "#eee",
-                }}
+                style={{ width: 96, height: 96, borderRadius: 9999, backgroundColor: "#eee" }}
                 contentFit="cover"
                 cachePolicy="none"
                 onError={() => setPreviewError("Image failed to load")}
@@ -151,9 +147,7 @@ export default function EditProfile() {
             )}
           </View>
           {previewError ? (
-            <RNText style={{ color: "red", fontSize: 12 }}>
-              {previewError}
-            </RNText>
+            <RNText style={{ color: "red", fontSize: 12 }}>{previewError}</RNText>
           ) : null}
         </View>
 
@@ -188,8 +182,7 @@ export default function EditProfile() {
             placeholderTextColor="#9CA3AF"
           />
           <RNText style={{ fontSize: 12, color: "#6b7280" }}>
-            Try: https://randomuser.me/api/portraits/men/32.jpg or a GitHub
-            avatar like https://avatars.githubusercontent.com/u/1?v=4
+            Try: https://randomuser.me/api/portraits/men/32.jpg or a GitHub avatar like https://avatars.githubusercontent.com/u/1?v=4
           </RNText>
         </View>
 

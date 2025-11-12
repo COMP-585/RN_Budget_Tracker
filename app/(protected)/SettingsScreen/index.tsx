@@ -1,6 +1,7 @@
 import { Image as ExpoImage } from "expo-image";
 import { Link } from "expo-router";
 import React, { useMemo } from "react";
+import { ScrollView, View, Alert, useColorScheme } from "react-native";
 import { Appearance, ScrollView, useColorScheme, View } from "react-native";
 import { ScrollView, View, Alert } from "react-native";
 import { Link } from "expo-router";
@@ -16,6 +17,8 @@ import useAuthStore from "@/lib/authStore";
 import { deleteUser, signOut } from "firebase/auth";
 import { auth } from "@/FirebaseConfig";
 import { signOut, deleteUser, sendPasswordResetEmail } from "firebase/auth";
+import Toast from "react-native-toast-message";
+import { THEME } from "@/lib/theme";
 
 import { THEME } from "@/lib/theme";
 import {
@@ -44,19 +47,73 @@ export default function SettingsScreen() {
 
    const handleChangePassword = async () => {
       if (!user?.email) {
-        Alert.alert("No email", "Your account does not have an email to reset.");
+        Toast.show({
+                      type: "error",
+                      text1: "No active user",
+                      text2: "Please sign in and try again.",
+                    });
         return;
       }
       try {
         await sendPasswordResetEmail(auth, user.email);
-        Alert.alert(
-          "Password reset sent",
-          `We sent a password reset link to ${user.email}. Check your inbox.`
-        );
+        Toast.show({
+                      type: "success",
+                      text1: "Email Sent",
+                      text2: "Check your inbox for the password reset email",
+                    });
       } catch (err: any) {
         Alert.alert("Error", err?.message ?? "Could not send password reset email.");
       }
     };
+
+    const confirmAndDelete = () => {
+        Alert.alert(
+          "Delete profile?",
+          "This will permanently delete your account. This cannot be undone.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: actuallyDeleteUser,
+            },
+          ]
+        );
+      };
+
+      const actuallyDeleteUser = async () => {
+        try {
+          const cu = auth.currentUser;
+          if (!cu) {
+            Toast.show({
+              type: "error",
+              text1: "No active user",
+              text2: "Please sign in and try again.",
+            });
+            return;
+          }
+
+          await deleteUser(cu);
+
+          Toast.show({
+            type: "success",
+            text1: "Account deleted",
+            text2: "Your profile has been removed.",
+          });
+        } catch (err: any) {
+          const code = err?.code ?? "";
+          const msg =
+            code === "auth/requires-recent-login"
+              ? "For security, please log out and log back in, then delete again."
+              : err?.message ?? "Could not delete your account.";
+
+          Toast.show({
+            type: "error",
+            text1: "Delete failed",
+            text2: msg,
+          });
+        }
+      };
 
   const colorScheme = useColorScheme();
   const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
@@ -154,15 +211,8 @@ export default function SettingsScreen() {
           label="Delete Profile"
           danger
           leftIcon={<Trash2 size={18} color={theme.foreground} />}
-          onPress={async () => {
-            if (auth.currentUser) {
-              try {
-                await deleteUser(auth.currentUser);
-              } catch {
-                // handle reauth required or ignore for now
-              }
-            }
-          }}
+          onPress={confirmAndDelete}
+
         />
       </SettingsCard>
 
