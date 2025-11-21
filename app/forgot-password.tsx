@@ -65,7 +65,7 @@ export default function ForgotPasswordScreen() {
                 Forgot your password?
               </Text>
               <Text style={[styles.forgotText, { color: theme.foreground }]}>
-                Please enter the email for the account you'd like to recover
+                Please enter the email for the account you&apos;d like to recover
               </Text>
               <TouchableOpacity
                 onPress={() => router.back()}

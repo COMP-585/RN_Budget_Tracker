@@ -14,12 +14,12 @@ export default function ProtectedLayout() {
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Tabs>
         <Tabs.Screen
-          name="home"
-          options={{ headerShown: false, title: "Home" }}
-        />
-        <Tabs.Screen
           name="GoalsScreen"
           options={{ headerShown: false, title: "Goals" }}
+        />
+        <Tabs.Screen
+          name="PetScreen"
+          options={{ headerShown: false, title: "Pet" }}
         />
         <Tabs.Screen
           name="SettingsScreen"
