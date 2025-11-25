@@ -7,8 +7,15 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Text } from "@/components/ui/text";
+import { accessories, type Accessory } from "@/data/accessories";
 import { THEME } from "@/lib/theme";
-import { Image, StyleSheet, useColorScheme, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  useColorScheme,
+  View,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function PetIndex() {
@@ -41,9 +48,10 @@ export default function PetIndex() {
       flex: 1,
       flexDirection: "column",
       gap: 16,
+      marginBottom: 60,
     },
     petContainer: {
-      flex: 2,
+      flex: 1,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -53,7 +61,22 @@ export default function PetIndex() {
       borderRadius: 24,
       padding: 16,
     },
+    accessoryItem: {
+      alignItems: "center",
+    },
+    itemText: {
+      fontSize: 12,
+      color: theme.primary,
+    },
   });
+
+  const itemProps = ({ item }: { item: Accessory }) => (
+    <View style={styles.accessoryItem}>
+      <Image source={item.image_path} style={styles.thumbImage} />
+      <Text style={styles.itemText}>{item.name}</Text>
+      <Text style={styles.itemText}>{item.price} pts</Text>
+    </View>
+  );
 
   return (
     <SafeAreaProvider style={{ backgroundColor: theme.background }}>
@@ -73,7 +96,13 @@ export default function PetIndex() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Text>Coming Soon!</Text>
+              <FlatList
+                data={accessories}
+                renderItem={itemProps}
+                horizontal
+                contentContainerStyle={{ gap: 16 }}
+                showsHorizontalScrollIndicator={false}
+              />
             </CardContent>
           </Card>
 
@@ -85,7 +114,13 @@ export default function PetIndex() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Text>Coming Soon!</Text>
+              <FlatList
+                data={accessories}
+                renderItem={itemProps}
+                horizontal
+                contentContainerStyle={{ gap: 16 }}
+                showsHorizontalScrollIndicator={false}
+              />
             </CardContent>
           </Card>
         </View>
