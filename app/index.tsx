@@ -13,12 +13,12 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
+import { Text } from "@/components/ui/text";
 
 export default function AuthScreen() {
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");

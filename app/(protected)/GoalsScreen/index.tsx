@@ -3,7 +3,8 @@ import { THEME } from "@/lib/theme";
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { FlatList, StyleSheet, TouchableOpacity, useColorScheme, View } from "react-native";
+import { Text } from "@/components/ui/text";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type Goal = {

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { ScrollView, View } from "react-native";
+import { Appearance, ScrollView, useColorScheme, View } from "react-native";
 import { Link } from "expo-router";
 import { Image as ExpoImage } from "expo-image";
 
@@ -33,6 +33,9 @@ export default function SettingsScreen() {
     const sep = u.includes("?") ? "&" : "?";
     return `${u}${sep}cb=${Date.now()}`;
   }, [user?.photoURL]);
+
+  const colorScheme = useColorScheme();
+
 
   return (
     <ScrollView
@@ -97,9 +100,9 @@ export default function SettingsScreen() {
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
-          label="Theme Settings"
+          label="Change Theme"
           leftIcon={<Palette size={18} />}
-          onPress={() => {}}
+          onPress={() => {Appearance.setColorScheme(colorScheme === "dark" ? "light" : "dark")}}
         />
         <View className="h-px bg-border/50 mx-4" />
 
