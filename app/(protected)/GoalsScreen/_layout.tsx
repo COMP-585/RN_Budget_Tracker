@@ -9,7 +9,7 @@ export default function SettingsStackLayout() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="goal-details"
+        name="goal-options"
         options={{ headerShown: false }}
       />
     </Stack>
