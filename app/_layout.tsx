@@ -24,7 +24,7 @@ export default function RootLayout() {
   }, [loading]);
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? "dark"]}>
+    <ThemeProvider value={NAV_THEME[colorScheme === "dark" ? "dark" : "light"]}>
       <StatusBar style={colorScheme === "dark" ? "dark" : "light"} />
       {/* gestureEnabled determines swiping back feature within Stack but can be individual */}
       <Stack screenOptions={{ gestureEnabled: false }}>
