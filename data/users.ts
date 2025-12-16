@@ -7,17 +7,19 @@ import {
   runTransaction,
   serverTimestamp,
   setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { Alert } from "react-native";
+import { Costume } from "./costumes";
 
 export type UserProfile = {
   email?: string;
   displayName?: string;
   coins?: number;
   currentPet?: string | null;
-  currentCostume?: string | null;
+  currentCostumeId?: number | null;
   unlockedPets?: string[];
-  unlockedCostumes?: string[];
+  unlockedCostumes?: number[];
   createdAt?: any; // or Firebase Timestamp if you prefer
 };
 
@@ -54,15 +56,17 @@ export const unlockPet = async (petId: string) => {
 };
 
 // ===== Unlock =====
-export const unlockAccessory = async (accessoryId: string) => {
+export const unlockCostume = async (costumeItem: Costume, currBal: number) => {
   const uid = auth.currentUser?.uid;
   if (!uid) return;
 
-  await setDoc(
-    userRef(uid),
-    { unlockedAccessories: arrayUnion(accessoryId) },
-    { merge: true }
-  );
+  const newBal =
+    currBal - costumeItem.price <= 0 ? 0 : currBal - costumeItem.price;
+
+  await updateDoc(userRef(uid), {
+    coins: newBal,
+    unlockedCostumes: arrayUnion(costumeItem.id),
+  });
 };
 
 /* =============== Listen to User Profile Changes =============== */
@@ -122,7 +126,7 @@ export const handleSignUp = async (email: string, password: string) => {
           email: user.email,
           coins: 0,
           currentPet: null,
-          currentCostume: null,
+          currentCostumeId: null,
           unlockedPets: [],
           unlockedCostumes: [],
           createdAt: serverTimestamp(),
@@ -134,4 +138,13 @@ export const handleSignUp = async (email: string, password: string) => {
     console.error("Sign-up error:", error);
     Alert.alert("Sign-up Failed", error.message);
   }
+};
+
+export const updateCostumeId = async (costumeId: number) => {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+
+  await updateDoc(userRef(uid), {
+    currentCostumeId: costumeId,
+  });
 };
