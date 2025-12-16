@@ -66,7 +66,7 @@ export default function AuthScreen() {
       >
         {/* Logo or Welcome Section */}
         <View style={styles.logoContainer}>
-          {/* Placeholder image (replace source with your own logo later) */}
+          {/* Placeholder image (replace source with our own logo later) */}
           <Image
             source={require("assets/images/splash-icon.png")}
             style={styles.logo}
@@ -89,42 +89,15 @@ export default function AuthScreen() {
               },
             ]}
           >
-            <Text
-              style={[
-                styles.tabText,
-                {
-                  color:
-                    activeTab === "login"
-                      ? theme.primary
-                      : theme.mutedForeground,
-                },
-              ]}
-            >
+            <Text style={[ styles.tabText, { color: activeTab === "login" ? theme.primary : theme.mutedForeground }]}>
               Login
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setActiveTab("signup")}
-            style={[
-              styles.tab,
-              {
-                borderBottomColor:
-                  activeTab === "signup" ? theme.primary : "transparent",
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                {
-                  color:
-                    activeTab === "signup"
-                      ? theme.primary
-                      : theme.mutedForeground,
-                },
-              ]}
-            >
+            style={[ styles.tab, { borderBottomColor: activeTab === "signup" ? theme.primary : "transparent" }]}>
+            <Text style={[ styles.tabText, { color: activeTab === "signup" ? theme.primary : theme.mutedForeground }]}>
               Sign Up
             </Text>
           </TouchableOpacity>
