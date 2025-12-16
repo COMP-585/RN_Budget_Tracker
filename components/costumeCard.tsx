@@ -1,9 +1,18 @@
+import { Text } from "@/components/ui/text";
 import { type AppTheme } from "@/lib/theme";
 import { type Costume } from "data/costumes";
 import { Lock } from "lucide-react-native";
 import React from "react";
-import { Text } from "@/components/ui/text";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
+
+type CostumeCardProps = {
+  item: Costume;
+  theme: AppTheme;
+  isSelected: boolean;
+  onPress: () => void;
+  isNone?: boolean;
+  isUnlocked?: boolean;
+};
 
 export default function CostumeCard({
   item,
@@ -12,14 +21,7 @@ export default function CostumeCard({
   isNone,
   isUnlocked,
   onPress,
-}: {
-  item: Costume;
-  theme: AppTheme;
-  isSelected: boolean;
-  onPress: () => void;
-  isNone?: boolean;
-  isUnlocked?: boolean;
-}) {
+}: CostumeCardProps) {
   const unlocked = isUnlocked || isNone;
   const styles = style(theme, isSelected, unlocked ?? false);
 
