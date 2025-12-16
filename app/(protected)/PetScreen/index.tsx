@@ -35,6 +35,8 @@ export default function PetIndex() {
     staticPets.catImg
   );
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
+  const styles = style(theme);
 
   useEffect(() => {
     const unsubProfile = listenToUserProfile(setProfile);
@@ -64,8 +66,6 @@ export default function PetIndex() {
     }
   }, [profile]);
 
-  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
-  const styles = style(theme);
 
   const handlePurchaseCostume = async (costume: Costume) => {
     if (!profile || (profile.coins ?? 0) < costume.price) {
