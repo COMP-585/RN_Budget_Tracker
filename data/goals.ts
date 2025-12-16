@@ -1,7 +1,7 @@
 // src/data/goals.ts
 import { earnCoins } from "@/data/users";
 import { auth, db } from "@/FirebaseConfig";
-import { addDoc, collection, deleteDoc, doc, increment, onSnapshot, orderBy, query, serverTimestamp, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, increment, onSnapshot, orderBy, query, serverTimestamp, Timestamp, updateDoc, writeBatch } from "firebase/firestore";
 
 
 // Firestore document shapes (NO id)
@@ -96,7 +96,18 @@ export async function deleteGoal(id: string) {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error("User not signed in");
 
-  await deleteDoc(doc(db, "users", uid, "goals", id));
+  const goalRef = doc(db, "users", uid, "goals", id);
+  const contribCol = collection(db, "users", uid, "goals", id, "contributions");
+
+  // Get all contributions
+  const contribSnap = await getDocs(contribCol);
+
+  // Delete every contribution
+  const deletions = contribSnap.docs.map((d) => deleteDoc(d.ref));
+  await Promise.all(deletions);
+
+  // Delete the goal itself
+  await deleteDoc(goalRef);
 }
 
 // ---------- Contributions ----------
@@ -106,6 +117,10 @@ export async function addContribution(goalId: string, amount: number, type: Cont
 
   const goalRef = doc(db, "users", uid, "goals", goalId);
   const contribCol = collection(db, "users", uid, "goals", goalId, "contributions");
+
+  const goalSnap = await getDoc(goalRef);
+  const goalData = goalSnap.data() as GoalDoc | undefined;
+  if (!goalData) throw new Error("Goal not found");
 
   const batch = writeBatch(db);
   const contribRef = doc(contribCol);
@@ -133,7 +148,12 @@ export async function addContribution(goalId: string, amount: number, type: Cont
     updateData.intervalStatus = "fulfilled";
   }
 
-batch.update(goalRef, updateData);
+  const futureCurrent = (goalData.currentAmount ?? 0) + amount;
+  if (futureCurrent >= goalData.targetAmount) {
+    updateData.goalStatus = "completed";
+  }
+
+  batch.update(goalRef, updateData);
 
   await batch.commit();
 
@@ -263,4 +283,29 @@ export function getGoalScheduleInfo(goal: Goal, now = new Date()) {
     intervalsRemaining, // e.g. 13
     daysLeft,           // e.g. 13
   };
+}
+
+export function getFullIntervalsBetween( start: Date, end: Date, interval: string ): number {
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs <= 0) return 0;
+
+  const oneDay = 24 * 60 * 60 * 1000;
+
+  if (interval === "daily") {
+    return Math.floor(diffMs / oneDay);
+  }
+
+  if (interval === "weekly") {
+    return Math.floor(diffMs / (7 * oneDay));
+  }
+
+  if (interval === "monthly") {
+    // how many whole month boundaries
+    const startMonth = start.getFullYear() * 12 + start.getMonth();
+    const endMonth = end.getFullYear() * 12 + end.getMonth();
+    return Math.max(0, endMonth - startMonth);
+  }
+
+  // fallback – treat as daily
+  return Math.floor(diffMs / oneDay);
 }

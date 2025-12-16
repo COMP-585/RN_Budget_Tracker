@@ -1,5 +1,6 @@
+import { THEME } from "@/lib/theme";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Animated, Dimensions, KeyboardAvoidingView, Modal, PanResponder, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from "react-native";
 import Selector from "./selector";
 
 export type GoalFormValues = {
@@ -20,6 +21,8 @@ type Props = {
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [interval, setInterval] = useState("");
@@ -196,7 +199,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
           style={{ flex: 1, justifyContent: "flex-end" }}
         >
           <Animated.View
-            style={[styles.sheetContainer, { transform: [{ translateY }] }]}
+            style={[styles.sheetContainer, {backgroundColor: theme.muted, transform: [{ translateY }] }]}
             {...panResponder.panHandlers}
           >
             {/* Header with drag indicator + X */}
@@ -207,9 +210,9 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
               >
                 <View style={styles.dragHandle} />
               </TouchableOpacity>
-              <Text style={styles.title}>Create Goal</Text>
+              <Text style={[styles.title, {color: theme.foreground}]}>Create Goal</Text>
               <TouchableOpacity onPress={closeWithAnimation} style={styles.closeButton}>
-                <Text style={styles.closeText}>×</Text>
+                <Text style={[styles.closeText, {color: theme.foreground}]}>×</Text>
               </TouchableOpacity>
             </View>
 
@@ -219,11 +222,11 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
               keyboardDismissMode="interactive"
             >
               
-              <Text style={styles.heading}>What are you saving up for?</Text>
+              <Text style={[styles.heading, {color: theme.foreground}]}>What are you saving up for?</Text>
 
               <View style={styles.field}>
                 <View style={styles.rowContainer}>
-                  <Text style={styles.body}>I'm saving for...</Text>
+                  <Text style={[styles.body, {color: theme.foreground}]}>I'm saving for...</Text>
                 </View>
                 <TextInput
                   value={name}
@@ -232,17 +235,17 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                   placeholderTextColor="#999"
                   returnKeyType="done"
                   maxLength={25}
-                  style={styles.inputText}
+                  style={[styles.inputText, {color: theme.foreground}]}
                   
                 />
               </View>
 
               <View style={styles.field}>
                 <View style={styles.rowContainer}>
-                  <Text style={styles.body}>and it costs...</Text>
+                  <Text style={[styles.body, {color: theme.foreground}]}>and it costs...</Text>
                 </View>
                 <View style={[{flex: 1, flexDirection: "row", }]}>
-                  <Text style={[styles.body, {fontSize: 20}]}>$</Text>
+                  <Text style={[styles.body, {fontSize: 20, color: theme.foreground}]}>$</Text>
                   <TextInput
                     value={target}
                     onChangeText={(text) => {
@@ -265,12 +268,12 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                     placeholder="0"
                     placeholderTextColor="#999"
                     maxLength={5}
-                    style={styles.inputNumber}
+                    style={[styles.inputNumber, {color: theme.foreground}]}
                   />
                 </View>
               </View>
 
-              <Text style={styles.heading}>How would you like to save up?</Text>
+              <Text style={[styles.heading, {color: theme.foreground}]}>How would you like to save up?</Text>
 
               <View style={styles.field}>
                 <View style={[styles.rowContainer, { justifyContent: "space-evenly" } ]}>
@@ -282,7 +285,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                         setDuration("");
                         setMaxContribution("");
                       }}
-                      style={[ styles.buttonOption, method === option && styles.buttonOptionSelected, ]}
+                      style={[ styles.buttonOption, method === option && styles.buttonOptionSelected ]}
                     >
                       <Text style={[ styles.buttonOptionText, method === option && styles.buttonOptionTextSelected, ]}>
                         {option.charAt(0).toUpperCase() + option.slice(1)}
@@ -295,7 +298,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                 <View style={[styles.field, {flexDirection: "column", alignContent: "space-between", justifyContent: "space-evenly", marginTop: 10}]}>
                   { method === "time" ? (
                     <>
-                      <Text style={styles.body}>I want to reach my goal in...</Text>
+                      <Text style={[styles.body, {color: theme.foreground}]}>I want to reach my goal in...</Text>
 
                       <View style={[{flexDirection: "row", }]}>
                         <TextInput
@@ -313,7 +316,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                           returnKeyType="done"
                           textAlign="center"
                           maxLength={3}
-                          style={[styles.inputNumber, {flex:.9, marginBottom: 14, }]}
+                          style={[styles.inputNumber, {flex:.9, marginBottom: 14, color: theme.primary }]}
                         />
                         <Selector 
                           options={[
@@ -329,10 +332,10 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                     </>
                   ) : method === "amount" ? (
                     <>
-                      <Text style={styles.body}>I want to reach my goal by saving...</Text>
+                      <Text style={[styles.body, {color: theme.foreground}]}>I want to reach my goal by saving...</Text>
 
                       <View style={[{flex:1, flexDirection: "row", }]}>
-                        <Text style={[styles.body, {fontSize: 20, marginTop: 9}]}>$</Text>
+                        <Text style={[styles.body, {fontSize: 20, marginTop: 9, color: theme.foreground}]}>$</Text>
                         <TextInput
                           value={maxContribution}
                           onChangeText={(text) => {
@@ -347,7 +350,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
                           returnKeyType="done"
                           textAlign="center"
                           maxLength={4}
-                          style={[styles.inputNumber, {flex:.9, marginBottom: 14, }]}
+                          style={[styles.inputNumber, {flex:.9, marginBottom: 14, color: theme.foreground }]}
                         />
                         <Selector 
                           options={[
@@ -366,7 +369,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
 
               </View>
 
-              <Text style={styles.heading}>Select a category for this goal?</Text>
+              <Text style={[styles.heading, {color: theme.foreground}]}>Select a category for this goal?</Text>
 
               <View style={[styles.field]}>
                 <Selector
@@ -388,7 +391,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
               </View>
               
               { isPreviewReady ? (
-                <Text style={styles.body}>
+                <Text style={[styles.body, {color: theme.foreground}]}>
                   By saving ${maxContribution} {interval}, you will reach ${target} in {duration} {ALTDISPLAY_INTERVAL[interval]}{Number(duration) !== 1 ? "s" : ""}.
                 </Text>
               ) : null}
@@ -415,7 +418,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.4)",
   },
   sheetContainer: {
-    backgroundColor: "#fff",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 16,
@@ -482,7 +484,6 @@ const styles = StyleSheet.create({
   inputNumber: {
     flex: 1,
     fontSize: 20,
-    color: "#000",
     borderBottomWidth: 1.5,
     borderBottomColor: "#ccc",
   },
@@ -492,6 +493,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   buttonOption: {
+    backgroundColor: "#eee",
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 12,

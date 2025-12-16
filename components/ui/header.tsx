@@ -12,7 +12,7 @@ type Props = {
 
 export default function Header({ title, containerStyle, textStyle, rightComponent, onRightPress }: Props) {
     const colorScheme = useColorScheme();
-    const theme = THEME.light;
+    const theme = colorScheme === "dark" ? THEME.dark : THEME.light;    
     
   return (
     <View style={[styles.container, containerStyle]}>
