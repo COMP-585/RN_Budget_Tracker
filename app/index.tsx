@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import { Text } from "@/components/ui/text";
+import { handleSignUp } from "@/data/users";
 
 export default function AuthScreen() {
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
@@ -35,7 +36,7 @@ export default function AuthScreen() {
 
   const signUp = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      handleSignUp(email, password)
       console.log(user);
     } catch (error: any) {
       console.log(error);

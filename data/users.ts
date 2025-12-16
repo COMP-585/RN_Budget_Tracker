@@ -1,5 +1,14 @@
 import { auth, db } from "@/FirebaseConfig";
-import { arrayUnion, doc, onSnapshot, runTransaction, serverTimestamp, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  arrayUnion,
+  doc,
+  onSnapshot,
+  runTransaction,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import { Alert } from "react-native";
 
 export type UserProfile = {
   displayName?: string;
@@ -11,20 +20,8 @@ export type UserProfile = {
   createdAt?: any; // or Firebase Timestamp if you prefer
 };
 
-
 // Reference helper
 export const userRef = (uid: string) => doc(db, "users", uid);
-
-export const initUserProfile = async (uid: string) => {
-  await setDoc(userRef(uid), {
-    coins: 0,
-    currentPetId: null,
-    currentAccessory: null,
-    unlockedPets: [],
-    unlockedAccessories: [],
-    createdAt: serverTimestamp(),
-  }, { merge: true });
-};
 
 /* Earn coins based on a contribution towards percent completed */
 export async function earnCoins(coinsToAdd: number) {
@@ -39,20 +36,15 @@ export async function earnCoins(coinsToAdd: number) {
     const snap = await tx.get(ref);
     const prevCoins = snap.exists() ? (snap.data()?.coins as number) || 0 : 0;
 
-    tx.set(
-      ref,
-      { coins: prevCoins + coinsToAdd },
-      { merge: true }
-    );
+    tx.set(ref, { coins: prevCoins + coinsToAdd }, { merge: true });
   });
 }
-
 
 // ===== Unlock =====
 export const unlockPet = async (petId: string) => {
   const uid = auth.currentUser?.uid;
   if (!uid) return;
-  
+
   await setDoc(
     userRef(uid),
     { unlockedPets: arrayUnion(petId) },
@@ -91,9 +83,9 @@ export function listenToUserProfile(
 
 // 0–1 fraction: coins come from % progress, not dollars
 export function getCoinsFromProgressDelta(options: {
-  oldCurrent: number;      // before contribution
-  newCurrent: number;      // after contribution
-  targetAmount: number;    // goal.targetAmount
+  oldCurrent: number; // before contribution
+  newCurrent: number; // after contribution
+  targetAmount: number; // goal.targetAmount
 }) {
   const { oldCurrent, newCurrent, targetAmount } = options;
 
@@ -113,3 +105,32 @@ export function getCoinsFromProgressDelta(options: {
   return coins;
 }
 
+export const handleSignUp = async (email: string, password: string) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+
+    if (user) {
+      await setDoc(
+        userRef(user.uid),
+        {
+          email: user.email,
+          coins: 0,
+          currentPetId: null,
+          currentAccessory: null,
+          unlockedPets: [],
+          unlockedAccessories: [],
+          createdAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }
+  } catch (error: any) {
+    console.error("Sign-up error:", error);
+    Alert.alert("Sign-up Failed", error.message);
+  }
+};
