@@ -1,3 +1,4 @@
+import CoinCounter from "@/components/coinCounter";
 import CostumeCard from "@/components/costumeCard";
 import {
   Card,
@@ -6,13 +7,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Header from "@/components/ui/header";
 import { Separator } from "@/components/ui/separator";
 import { costumes, type Costume } from "@/data/costumes";
 import { staticPetBg, staticPets } from "@/data/staticAssets";
+import { listenToUserProfile, UserProfile } from "@/data/users";
 import { AppTheme, THEME } from "@/lib/theme";
 import { ImageBackground } from "expo-image";
-import { useState } from "react";
-import { FlatList, Image, StyleSheet, useColorScheme } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  FlatList,
+  Image,
+  StyleSheet,
+  useColorScheme,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function PetIndex() {
@@ -24,9 +33,70 @@ export default function PetIndex() {
     staticPets.catImg
   );
   const [selectedPet, setSelectedPet] = useState<string>("cat");
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const unsubProfile = listenToUserProfile(setProfile);
+    setSelectedPet(profile?.currentPet ?? "cat");
+    return () => {
+      unsubProfile?.();
+    };
+  }, [profile?.currentPet]);
 
   const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
   const styles = style(theme);
+
+  const handlePurchaseCostume = async (costume: Costume) => {
+    if (!profile || (profile.coins ?? 0) < costume.price) {
+      Alert.alert(
+        "Not enough coins!",
+        "You need more coins to buy this costume."
+      );
+      return;
+    }
+
+    try {
+      //await buyCostume(costume.name, costume.price);
+      Alert.alert(
+        "Success!",
+        `You have purchased the ${costume.name} costume.`
+      );
+    } catch (error: any) {
+      Alert.alert(
+        "Purchase Failed",
+        error.message || "Could not complete the purchase."
+      );
+    }
+  };
+
+  const handleCardPress = (item: Costume) => {
+    const isUnlocked = profile?.unlockedCostumes?.includes(item.name) ?? false;
+    const isNone = item.name === "None";
+
+    if (isUnlocked || isNone) {
+      setSelectedCostumeId(isNone ? null : item.name);
+      setSelectedPetImage(
+        selectedPet === "cat" ? item.cat_costume : item.dog_costume
+      );
+    } else {
+      // Locked costume
+      if ((profile?.coins ?? 0) >= item.price) {
+        Alert.alert(
+          "Purchase Costume?",
+          `Do you want to buy the ${item.name} costume for ${item.price} coins?`,
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Buy", onPress: () => handlePurchaseCostume(item) },
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Not Enough Coins",
+          `You need ${item.price} coins to buy this costume. You only have ${profile?.coins ?? 0}.`
+        );
+      }
+    }
+  };
 
   const renderItem = ({ item }: { item: Costume }) => (
     <CostumeCard
@@ -38,12 +108,8 @@ export default function PetIndex() {
           ? selectedCostumeId === null
           : item.name === selectedCostumeId
       }
-      onPress={() => {
-        setSelectedCostumeId(item.name === "None" ? null : item.name);
-        setSelectedPetImage(
-          selectedPet === "cat" ? item.cat_costume : item.dog_costume
-        );
-      }}
+      isUnlocked={profile?.unlockedCostumes?.includes(item.name) ?? false}
+      onPress={() => handleCardPress(item)}
     />
   );
 
@@ -51,6 +117,7 @@ export default function PetIndex() {
     <SafeAreaProvider style={{ backgroundColor: theme.background }}>
       <SafeAreaView style={[styles.primaryContainer]}>
         <ImageBackground source={staticPetBg} style={[styles.petContainer]}>
+          <CoinCounter profile={profile} theme={theme} style={styles.coinContainer} textColor={theme.background}></CoinCounter>
           <Image source={selectedPetImage} style={[styles.petImage]} />
         </ImageBackground>
 
@@ -79,10 +146,13 @@ export default function PetIndex() {
 
 const style = (theme: AppTheme) =>
   StyleSheet.create({
+    coinContainer: {
+      position: 'absolute',
+      top: 10,
+      right: 10
+    },
     primaryContainer: {
       flex: 1,
-      margin: 16,
-      gap: 16,
       justifyContent: "space-between",
       backgroundColor: theme.background,
     },
@@ -96,6 +166,8 @@ const style = (theme: AppTheme) =>
       height: 200,
       resizeMode: "cover",
       alignSelf: "center",
+      position: "absolute",
+      top: 300
     },
     petContainer: {
       flex: 1,
@@ -108,5 +180,6 @@ const style = (theme: AppTheme) =>
       borderWidth: 1,
       borderRadius: 24,
       padding: 16,
+      margin: 16
     },
   });

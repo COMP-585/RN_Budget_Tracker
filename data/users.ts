@@ -11,12 +11,13 @@ import {
 import { Alert } from "react-native";
 
 export type UserProfile = {
+  email?: string;
   displayName?: string;
   coins?: number;
-  currentPetId?: string | null;
-  currentAccessory?: string | null;
+  currentPet?: string | null;
+  currentCostume?: string | null;
   unlockedPets?: string[];
-  unlockedAccessories?: string[];
+  unlockedCostumes?: string[];
   createdAt?: any; // or Firebase Timestamp if you prefer
 };
 
@@ -120,10 +121,10 @@ export const handleSignUp = async (email: string, password: string) => {
         {
           email: user.email,
           coins: 0,
-          currentPetId: null,
-          currentAccessory: null,
+          currentPet: null,
+          currentCostume: null,
           unlockedPets: [],
-          unlockedAccessories: [],
+          unlockedCostumes: [],
           createdAt: serverTimestamp(),
         },
         { merge: true }
