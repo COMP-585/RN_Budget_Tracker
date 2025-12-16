@@ -149,7 +149,7 @@ export default function PetIndex() {
           </CardHeader>
           <CardContent>
             <FlatList
-              data={costumes}
+              data={costumes.sort((a, b) => a.price - b.price)}
               renderItem={renderItem}
               horizontal
               contentContainerStyle={{ gap: 16 }}
