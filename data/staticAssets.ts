@@ -19,4 +19,4 @@ export const staticPetCostumes = {
   dogPirate: require("assets/images/pet_costumes/dog_pirate.png"),
 };
 
-export const staticPetBg = require("assets/images/pet_bg.png");
+export const staticPetBg = require("assets/images/pet_bg.jpg");
