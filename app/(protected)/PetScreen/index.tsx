@@ -11,23 +11,47 @@ import { costumes, type Costume } from "@/data/costumes";
 import { staticPetBg, staticPets } from "@/data/staticAssets";
 import { AppTheme, THEME } from "@/lib/theme";
 import { ImageBackground } from "expo-image";
+import { useState } from "react";
 import { FlatList, Image, StyleSheet, useColorScheme } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function PetIndex() {
   const colorScheme = useColorScheme();
+  const [selectedCostumeId, setSelectedCostumeId] = useState<string | null>(
+    null
+  );
+  const [selectedPetImage, setSelectedPetImage] = useState<any>(
+    staticPets.catImg
+  );
+  const [selectedPet, setSelectedPet] = useState<string>("cat");
+
   const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
   const styles = style(theme);
 
-  const itemProps = ({ item }: { item: Costume }) => (
-    <CostumeCard item={item} theme={theme}></CostumeCard>
+  const renderItem = ({ item }: { item: Costume }) => (
+    <CostumeCard
+      item={item}
+      isNone={item.name === "None"}
+      theme={theme}
+      isSelected={
+        item.name === "None"
+          ? selectedCostumeId === null
+          : item.name === selectedCostumeId
+      }
+      onPress={() => {
+        setSelectedCostumeId(item.name === "None" ? null : item.name);
+        setSelectedPetImage(
+          selectedPet === "cat" ? item.cat_costume : item.dog_costume
+        );
+      }}
+    />
   );
 
   return (
     <SafeAreaProvider style={{ backgroundColor: theme.background }}>
       <SafeAreaView style={[styles.primaryContainer]}>
         <ImageBackground source={staticPetBg} style={[styles.petContainer]}>
-          <Image source={staticPets.catImg} style={[styles.petImage]} />
+          <Image source={selectedPetImage} style={[styles.petImage]} />
         </ImageBackground>
 
         <Card style={[styles.costumesContainer]}>
@@ -40,10 +64,11 @@ export default function PetIndex() {
           <CardContent>
             <FlatList
               data={costumes}
-              renderItem={itemProps}
+              renderItem={renderItem}
               horizontal
               contentContainerStyle={{ gap: 16 }}
               showsHorizontalScrollIndicator={false}
+              extraData={selectedCostumeId}
             />
           </CardContent>
         </Card>
@@ -72,14 +97,6 @@ const style = (theme: AppTheme) =>
       resizeMode: "cover",
       alignSelf: "center",
     },
-    thumbImage: {
-      width: 50,
-      height: 50,
-      resizeMode: "cover",
-    },
-    optionsContainer: {
-      marginBottom: 8,
-    },
     petContainer: {
       flex: 1,
       alignItems: "center",
@@ -91,12 +108,5 @@ const style = (theme: AppTheme) =>
       borderWidth: 1,
       borderRadius: 24,
       padding: 16,
-    },
-    accessoryItem: {
-      alignItems: "center",
-    },
-    itemText: {
-      fontSize: 12,
-      color: theme.primary,
     },
   });
