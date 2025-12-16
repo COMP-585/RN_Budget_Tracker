@@ -1,33 +1,33 @@
+import CurrencyIcon from "@/assets/images/currency.png";
+import GoalCard from "@/components/ui/goalcard";
 import GoalFormModal, { GoalFormValues } from "@/components/ui/goalformmodal";
 import Header from "@/components/ui/header";
-import { createGoal, listenGoals } from "@/data/goals";
+import { createGoal, Goal, listenGoals } from "@/data/goals";
+import { listenToUserProfile, UserProfile } from "@/data/users";
 import { THEME } from "@/lib/theme";
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { FlatList, StyleSheet, TouchableOpacity, useColorScheme, View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { FlatList, Image, StyleSheet, TouchableOpacity, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type Goal = {
-  id: string;
-  name: string;
-  targetAmount: number;
-  currentAmount: number;
-  dueDate?: string | null;
-  color?: string | null;
-};
 
 export default function GoalsIndex() {
   const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
+  const theme =  THEME.light;
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    const unsub = listenGoals((rows: Goal[]) => setGoals(rows || []));
-    return () => unsub?.();
+    const unsubProfile = listenToUserProfile(setProfile);
+    const unsubGoals = listenGoals((rows: Goal[]) => setGoals(rows || []));
+    return () =>  {
+      unsubProfile?.();
+      unsubGoals?.();
+    };
   }, []);
 
   const handleAddGoal = async (values: GoalFormValues) => {
@@ -36,64 +36,36 @@ export default function GoalsIndex() {
       targetAmount: values.targetAmount,
       currentAmount: 0,
       interval: values.interval,
-      dueDate: values.dueDate,
+      duration: values.duration,
+      maxContribution: values.maxContribution,
+      category: values.category
     });
   };
 
   const renderGoal = ({ item }: { item: Goal }) => (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      // Navigate to the stack screen with an id param
-      onPress={() =>
-        router.push({
-          pathname: "/GoalsScreen/goal-options",
-          params: { id: item.id },
-        })
-      }
-      style={[styles.goalCard, { backgroundColor: theme.card, borderColor: theme.border }]}
-    >
-      <View style={styles.cardHeader}>
-        <Text style={[styles.goalText, { color: theme.foreground }]} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={[styles.meta, { color: "white" }]}>
-          ${item.currentAmount.toFixed(0)} / ${item.targetAmount.toFixed(0)}
-        </Text>
-      </View>
-
-      <View style={[styles.progressTrack, { backgroundColor: theme.muted || theme.border }]}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${Math.min(100, Math.max(0, (item.currentAmount / Math.max(1, item.targetAmount)) * 100))}%`,
-              backgroundColor: item.color || theme.primary,
-            },
-          ]}
-        />
-      </View>
-
-      <View style={styles.cardFooter}>
-        <Text style={[styles.meta, { color: "white" }]}>
-          {Math.round((item.currentAmount / Math.max(1, item.targetAmount)) * 100)}%
-        </Text>
-        <Text style={[styles.meta, { color: "white" }]}>
-          Remaining: ${Math.max(0, item.targetAmount - item.currentAmount).toFixed(0)}
-        </Text>
-      </View>
-    </TouchableOpacity>
+    <GoalCard item={item} theme={theme} />
   );
 
   return (
     <SafeAreaView style={[styles.primaryContainer, { backgroundColor: theme.background }]}>
       <Header 
-        title="Your Goals" 
+        title="Your Goals"
+        rightComponent={
+          <View style={[styles.coinsContainer]}>
+            <Text style={[styles.meta, { color: theme.foreground, padding: 6}]}>{profile?.coins?? 0}</Text>
+            <Image
+              source={CurrencyIcon}
+              style={{ width: 28, height: 28 }}
+              resizeMode="contain"
+            />
+          </View>
+        }
       />
 
       {goals.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: "grey" }]}>
-            You don't have any goals yet. Tap the + button to make one!
+            You don&apos;t have any goals yet. Tap the + button to make one!
           </Text>
         </View>
       ) : (
@@ -107,7 +79,7 @@ export default function GoalsIndex() {
 
       {/* Floating Add Button */}
       <TouchableOpacity
-        style={[styles.floatingButton, { backgroundColor: theme.primary }]}
+        style={[styles.floatingButton, { backgroundColor: "#1164fdff" }]}
         onPress={ () => setIsFormVisible(true)}
       >
         <Plus color={theme.primaryForeground} size={28} />
@@ -128,8 +100,15 @@ const styles = StyleSheet.create({
 
   },
   listContainer: { 
-    paddingBottom: 120 
-  
+    paddingBottom: 120, 
+    shadowOpacity: 0.1,
+    shadowOffset: {width: 0.2, height: 2}
+
+  },
+  coinsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+
   },
   goalCard: {
     borderWidth: 1, 
@@ -195,6 +174,5 @@ const styles = StyleSheet.create({
     alignItems: "center", 
     justifyContent: "center", 
     elevation: 6,
-
   },
 });

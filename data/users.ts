@@ -26,12 +26,11 @@ export const initUserProfile = async (uid: string) => {
   }, { merge: true });
 };
 
-/* Earn coins based on a budget increment or contribution */
-export async function earnCoins(amount: number) {
+/* Earn coins based on a contribution towards percent completed */
+export async function earnCoins(coinsToAdd: number) {
   const uid = auth.currentUser?.uid;
   if (!uid) throw new Error("User not logged in");
 
-  const coinsToAdd = Math.ceil(amount * 10); // contribution($) * coin multiplier — adjust as needed
   if (coinsToAdd <= 0) return;
 
   const ref = userRef(uid);
@@ -89,3 +88,28 @@ export function listenToUserProfile(
     callback(snap.data() as UserProfile);
   });
 }
+
+// 0–1 fraction: coins come from % progress, not dollars
+export function getCoinsFromProgressDelta(options: {
+  oldCurrent: number;      // before contribution
+  newCurrent: number;      // after contribution
+  targetAmount: number;    // goal.targetAmount
+}) {
+  const { oldCurrent, newCurrent, targetAmount } = options;
+
+  // Avoid divide-by-zero
+  const target = Math.max(targetAmount, 1);
+
+  // Clamp between 0 and 1
+  const oldProgress = Math.min(1, oldCurrent / target);
+  const newProgress = Math.min(1, newCurrent / target);
+
+  const delta = newProgress - oldProgress;
+  if (delta <= 0) return 0;
+
+  // 1.0 (100%) progress = 100 coins total
+  // 0.01 (1%) progress   = 1 coin
+  const coins = Math.round(delta * 100);
+  return coins;
+}
+

@@ -12,14 +12,13 @@ type Props = {
 
 export default function Header({ title, containerStyle, textStyle, rightComponent, onRightPress }: Props) {
     const colorScheme = useColorScheme();
-    const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
+    const theme = THEME.light;
     
   return (
     <View style={[styles.container, containerStyle]}>
         <Text style={[styles.primaryText, textStyle, { color: theme.foreground }]}>{title}</Text>
 
-        {/* Right corner slot */}
-        {rightComponent && (
+        {rightComponent ? (
             <TouchableOpacity
                 style={styles.rightWrapper}
                 onPress={onRightPress}
@@ -27,9 +26,9 @@ export default function Header({ title, containerStyle, textStyle, rightComponen
             >
                 {rightComponent}
             </TouchableOpacity>
-        )};
+        ) : null}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -38,7 +37,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 2,
         marginTop: 2,
-        //backgroundColor: "red"
     },
     primaryText: {
         fontSize: 22,
