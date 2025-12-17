@@ -1,27 +1,30 @@
+import { Image as ExpoImage } from "expo-image";
+import { Link } from "expo-router";
 import React, { useMemo } from "react";
 import { Appearance, ScrollView, useColorScheme, View } from "react-native";
-import { Link } from "expo-router";
-import { Image as ExpoImage } from "expo-image";
 
-import { Text } from "@/components/ui/text";
-import { Button } from "@/components/ui/button";
 import SettingsCard from "@/components/settings/SettingsCard";
 import SettingsItem from "@/components/settings/SettingsItem";
+import { Button } from "@/components/ui/button";
+import { Text } from "@/components/ui/text";
 
-import useAuthStore from "@/lib/authStore";
 import { auth } from "@/FirebaseConfig";
-import { signOut, deleteUser } from "firebase/auth";
+import useAuthStore from "@/lib/authStore";
+import { deleteUser, signOut } from "firebase/auth";
 
+import { THEME } from "@/lib/theme";
 import {
-  LogOut,
-  UserRound,
   Bell,
   KeyRound,
-  Palette,
-  Target,
   Link2,
+  Palette,
+  Scroll,
+  Target,
   Trash2,
+  UserRound,
 } from "lucide-react-native";
+import Header from "@/components/ui/header";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const { user } = useAuthStore();
@@ -35,7 +38,7 @@ export default function SettingsScreen() {
   }, [user?.photoURL]);
 
   const colorScheme = useColorScheme();
-
+  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
 
   return (
     <ScrollView
@@ -45,13 +48,19 @@ export default function SettingsScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Profile header */}
-      <View className="items-center gap-4">
+      <SafeAreaView className="items-center gap-4">
+        <Header title="Account Settings"></Header>
         <View className="w-24 h-24 rounded-full bg-primary/10 items-center justify-center overflow-hidden">
           {headerUri ? (
             <ExpoImage
               key={headerUri} // force remount on change
               source={{ uri: headerUri }}
-              style={{ width: 96, height: 96, borderRadius: 9999, backgroundColor: "#eee" }}
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: 9999,
+                backgroundColor: "#eee",
+              }}
               contentFit="cover"
               cachePolicy="none"
             />
@@ -67,48 +76,55 @@ export default function SettingsScreen() {
             {user?.email || "email@example.com"}
           </Text>
         </View>
-      </View>
+      </SafeAreaView>
 
       <View className="h-px bg-border/70" />
 
       <SettingsCard className="overflow-hidden">
         {/* Profile Information -> Edit Profile */}
         <Link href="/SettingsScreen/edit-profile" asChild>
-          <SettingsItem label="Profile Information" leftIcon={<UserRound size={18} />} />
+          <SettingsItem
+            label="Profile Information"
+            leftIcon={<UserRound size={18} color={theme.foreground} />}
+          />
         </Link>
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
           label="Change Password"
-          leftIcon={<KeyRound size={18} />}
+          leftIcon={<KeyRound size={18} color={theme.foreground} />}
           onPress={() => {}}
         />
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
           label="Linked Accounts"
-          leftIcon={<Link2 size={18} />}
+          leftIcon={<Link2 size={18} color={theme.foreground} />}
           onPress={() => {}}
         />
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
           label="Notification Preferences"
-          leftIcon={<Bell size={18} />}
+          leftIcon={<Bell size={18} color={theme.foreground} />}
           onPress={() => {}}
         />
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
           label="Change Theme"
-          leftIcon={<Palette size={18} />}
-          onPress={() => {Appearance.setColorScheme(colorScheme === "dark" ? "light" : "dark")}}
+          leftIcon={<Palette size={18} color={theme.foreground} />}
+          onPress={() => {
+            Appearance.setColorScheme(
+              colorScheme === "dark" ? "light" : "dark"
+            );
+          }}
         />
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
           label="Update Goals"
-          leftIcon={<Target size={18} />}
+          leftIcon={<Target size={18} color={theme.foreground} />}
           onPress={() => {}}
         />
         <View className="h-px bg-border/50 mx-4" />
@@ -116,7 +132,7 @@ export default function SettingsScreen() {
         <SettingsItem
           label="Delete Profile"
           danger
-          leftIcon={<Trash2 size={18} />}
+          leftIcon={<Trash2 size={18} color={theme.foreground} />}
           onPress={async () => {
             if (auth.currentUser) {
               try {

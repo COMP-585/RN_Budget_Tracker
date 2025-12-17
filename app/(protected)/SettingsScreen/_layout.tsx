@@ -3,14 +3,16 @@ import React from "react";
 
 export default function SettingsStackLayout() {
   return (
-    <Stack screenOptions={{ headerShadowVisible: false }}>
-      <Stack.Screen
-        name="index"
-        options={{ title: "Account Settings" }}
-      />
+    <Stack
+      screenOptions={{
+        headerShadowVisible: false,
+        headerBackButtonDisplayMode: "minimal",
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="edit-profile"
-        options={{ title: "Edit Profile" }}
+        options={{ headerShown: true, title: "Edit Profile" }}
       />
     </Stack>
   );
