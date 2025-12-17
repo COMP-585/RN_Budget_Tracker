@@ -1,7 +1,8 @@
 import React from "react";
-import { Pressable, View, PressableProps } from "react-native";
+import { Pressable, View, PressableProps, useColorScheme } from "react-native";
 import { Text } from "@/components/ui/text";
 import { ChevronRight } from "lucide-react-native";
+import { THEME } from "@/lib/theme";
 
 type Props = PressableProps & {
   label: string;
@@ -10,6 +11,9 @@ type Props = PressableProps & {
 };
 
 export default function SettingsItem({ label, danger, leftIcon, ...pressableProps }: Props) {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
+
   return (
     <Pressable className="px-4 py-3 active:opacity-70" {...pressableProps}>
       <View className="flex-row items-center justify-between">
@@ -19,7 +23,7 @@ export default function SettingsItem({ label, danger, leftIcon, ...pressableProp
             {label}
           </Text>
         </View>
-        <ChevronRight size={18} />
+        <ChevronRight size={18} color={theme.foreground}/>
       </View>
     </Pressable>
   );

@@ -1,13 +1,21 @@
-
-import React, { useMemo, useState } from "react";
-import { View, Alert, TextInput, Text as RNText, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
-import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
-import useAuthStore from "@/lib/authStore";
+import { Text } from "@/components/ui/text";
 import { auth } from "@/FirebaseConfig";
+import useAuthStore from "@/lib/authStore";
 import { Image as ExpoImage } from "expo-image";
+import React, { useMemo, useState } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Text as RNText,
+  ScrollView,
+  TextInput,
+  View,
+} from "react-native";
 
-const isLikelyPublicImage = (u: string) => /^https:\/\/.+/i.test((u ?? "").trim());
+const isLikelyPublicImage = (u: string) =>
+  /^https:\/\/.+/i.test((u ?? "").trim());
 
 export default function EditProfile() {
   const { user, setUser } = useAuthStore();
@@ -103,7 +111,12 @@ export default function EditProfile() {
               <ExpoImage
                 key={userHeaderUri}
                 source={{ uri: userHeaderUri }}
-                style={{ width: 96, height: 96, borderRadius: 9999, backgroundColor: "#eee" }}
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 9999,
+                  backgroundColor: "#eee",
+                }}
                 contentFit="cover"
                 cachePolicy="none"
               />
@@ -115,13 +128,20 @@ export default function EditProfile() {
 
         {/* Live preview of NEW URL */}
         <View className="items-center gap-2">
-          <Text className="text-sm text-muted-foreground">Preview of the NEW URL below</Text>
+          <Text className="text-sm text-muted-foreground">
+            Preview of the NEW URL below
+          </Text>
           <View className="w-24 h-24 rounded-full bg-primary/10 items-center justify-center overflow-hidden">
             {previewUri ? (
               <ExpoImage
                 key={previewUri}
                 source={{ uri: previewUri }}
-                style={{ width: 96, height: 96, borderRadius: 9999, backgroundColor: "#eee" }}
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 9999,
+                  backgroundColor: "#eee",
+                }}
                 contentFit="cover"
                 cachePolicy="none"
                 onError={() => setPreviewError("Image failed to load")}
@@ -131,7 +151,9 @@ export default function EditProfile() {
             )}
           </View>
           {previewError ? (
-            <RNText style={{ color: "red", fontSize: 12 }}>{previewError}</RNText>
+            <RNText style={{ color: "red", fontSize: 12 }}>
+              {previewError}
+            </RNText>
           ) : null}
         </View>
 
@@ -166,7 +188,8 @@ export default function EditProfile() {
             placeholderTextColor="#9CA3AF"
           />
           <RNText style={{ fontSize: 12, color: "#6b7280" }}>
-            Try: https://randomuser.me/api/portraits/men/32.jpg or a GitHub avatar like https://avatars.githubusercontent.com/u/1?v=4
+            Try: https://randomuser.me/api/portraits/men/32.jpg or a GitHub
+            avatar like https://avatars.githubusercontent.com/u/1?v=4
           </RNText>
         </View>
 
