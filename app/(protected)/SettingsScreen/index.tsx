@@ -1,11 +1,7 @@
 import { Image as ExpoImage } from "expo-image";
 import { Link } from "expo-router";
 import React, { useMemo } from "react";
-import { ScrollView, View, Alert, useColorScheme } from "react-native";
-import { Appearance, ScrollView, useColorScheme, View } from "react-native";
-import { ScrollView, View, Alert } from "react-native";
-import { Link } from "expo-router";
-import { Image as ExpoImage } from "expo-image";
+import { Appearance, ScrollView, Alert, useColorScheme, View } from "react-native";
 
 import SettingsCard from "@/components/settings/SettingsCard";
 import SettingsItem from "@/components/settings/SettingsItem";
@@ -14,11 +10,8 @@ import { Text } from "@/components/ui/text";
 
 import { auth } from "@/FirebaseConfig";
 import useAuthStore from "@/lib/authStore";
-import { deleteUser, signOut } from "firebase/auth";
-import { auth } from "@/FirebaseConfig";
 import { signOut, deleteUser, sendPasswordResetEmail } from "firebase/auth";
 import Toast from "react-native-toast-message";
-import { THEME } from "@/lib/theme";
 
 import { THEME } from "@/lib/theme";
 import {
