@@ -1,20 +1,20 @@
 import Accordion from "@/components/ui/accordion";
 import GoalCard from "@/components/ui/goalcard";
 import Selector from "@/components/ui/selector";
-import { addContribution, Contribution, ContributionDoc, ContributionType, deleteGoal, getContributionWindow, Goal, GoalDoc } from "@/data/goals";
+import { addContribution, Contribution, ContributionDoc, ContributionType, deleteGoal, getContributionWindow, getFullIntervalsBetween, Goal, GoalDoc } from "@/data/goals";
 import { auth, db } from "@/FirebaseConfig";
 import { THEME } from "@/lib/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { collection, doc, increment, onSnapshot, orderBy, query, Timestamp, updateDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function GoalDetailsScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const theme = THEME.light;
+  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
   const uid = auth.currentUser?.uid;
   
   const [goal, setGoal] = useState<Goal | null>(null);
@@ -22,8 +22,6 @@ export default function GoalDetailsScreen() {
 
   // Edit section state
   const [name, setName] = useState("");
-  const [target, setTarget] = useState<string>("");
-  const [interval, setInterval] = useState("");
   const [category, setCategory] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -39,13 +37,7 @@ export default function GoalDetailsScreen() {
     ? getContributionWindow(goal)
     : { canContribute: false, nextDate: new Date() };
 
-  const nextContributionLabel = !canContribute
-    ? nextDate.toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      })
-    : null;
+
 
   // Guard against missing id
   useEffect(() => {
@@ -65,8 +57,7 @@ export default function GoalDetailsScreen() {
 
         // Initialize edit fields once
         setName((prev) => (prev === "" ? g.name : prev));
-        setTarget((prev) => (prev === "" ? String(g.targetAmount) : prev));
-        setInterval((prev) => (prev === "" ? g.interval ?? "" : prev));
+        setCategory((prev) => (prev === "" ? g.category : prev));
       } else {
         setGoal(null);
       }
@@ -119,24 +110,20 @@ export default function GoalDetailsScreen() {
     }
 
     const trimmedName = name.trim();
-    const targetNum = parseFloat(target);
+    const trimmedCategory = category.trim();
 
     if (!trimmedName) {
       Alert.alert("Invalid name", "Please enter a goal name.");
       return;
     }
-    if (isNaN(targetNum) || targetNum <= 0) {
-      Alert.alert("Invalid target", "Please enter a valid target amount.");
-      return;
-    }
+
 
     try {
       setSaving(true);
       const goalRef = doc(db, "users", uid, "goals", String(id));
       await updateDoc(goalRef, {
         name: trimmedName,
-        targetAmount: targetNum,
-        // interval: interval, // TODO: if you want to allow editing interval later
+        category: trimmedCategory,
       } as Partial<GoalDoc>);
       Alert.alert("Saved", "Your goal was updated.");
     } catch (e: any) {
@@ -172,11 +159,36 @@ export default function GoalDetailsScreen() {
     try {
       setSubmitting(true);
       await addContribution(String(id), Number(n.toFixed(2)), "contribution");
-      const diff = goal.maxContribution - n;
 
-      if (diff > 0) {
-        await updateDoc(doc(db, "users", uid!, "goals", String(id)), {
-          missingAmount: increment(diff),
+      const anchorDate =
+        goal.lastContributionAt?.toDate() ??
+        goal.createdAt?.toDate() ??
+        new Date();
+
+      const now = new Date();
+
+      // how many full intervals have passed since anchorDate
+      const intervalsPassed = getFullIntervalsBetween( anchorDate, now, goal.interval );
+
+      // we treat this current contribution as fulfilling the *current* interval,
+      // so only previous ones are "missed"
+      const missedIntervals = Math.max(0, intervalsPassed - 1);
+
+      const timeMissedAmount = missedIntervals * goal.maxContribution;
+
+      // 3) Partial under-contribution diff for *this* interval
+      const partialDiff = Math.max(0, goal.maxContribution - n);
+
+      const totalMissingDelta = timeMissedAmount + partialDiff;
+      if (totalMissingDelta > 0) {
+        const uid = auth.currentUser?.uid;
+        if (!uid) throw new Error("Not signed in");
+
+        const goalRef = doc(db, "users", uid, "goals", String(id));
+
+        await updateDoc(goalRef, {
+          // add time-based missed amount + under-contribution diff
+          missingAmount: increment(totalMissingDelta),
         });
       }
 
@@ -242,6 +254,9 @@ export default function GoalDetailsScreen() {
     );
   }
 
+  const isCompletedByAmount = goal.currentAmount >= goal.targetAmount;
+  const isCompleted = goal.goalStatus === "completed" || isCompletedByAmount;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
@@ -265,285 +280,304 @@ export default function GoalDetailsScreen() {
         pressDisabled
       />
 
-
-      {/* Accordions */}
-      <ScrollView
-        style={{ flex: 1, paddingHorizontal: 16 }}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        {/* Contribute accordion */}
-        <Accordion title="Contribute" initiallyOpen>
-          <Text style={{ color: theme.foreground, fontSize: 16, fontWeight: "600", marginBottom: 8, }} >Feed goal</Text>
-
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              borderBottomWidth: 1.5,
-              borderBottomColor: "#ccc",
-              paddingVertical: 4,
-              marginBottom: 20
-            }}
+        {/* Accordions */}
+        <ScrollView
+          style={{ flex: 1, paddingHorizontal: 16 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          {/* Contribute accordion */}
+          <Accordion 
+            title="Contribute" initiallyOpen
+            containerStyle={{backgroundColor: theme.background}}
+            titleStyle={{color: theme.foreground}}
           >
-            <Text style={{ fontSize: 20, color: "#000", marginRight: 4 }}>$</Text>
+            <Text style={{ color: theme.foreground, fontSize: 16, fontWeight: "600", marginBottom: 8, }} >Feed goal</Text>
 
-            {/* Contribution Input */}
-            <TextInput
-              value={amount}
-              onChangeText={(text) => {
-                let cleaned = text.replace(/[^0-9]/g, "");
-                if (cleaned === "") {
-                  setAmount("");
-                  return;
-                }
-                let num = Number(cleaned);
-                if (num > goal.maxContribution) {
-                  num = goal.maxContribution;
-                }
-                setAmount(String(num));
-              }}
-              keyboardType="number-pad"
-              placeholder="0"
-              placeholderTextColor="#999"
+            <View
               style={{
-                flex: 1,
-                fontSize: 20,
-                color: "#000",
-                paddingVertical: 0,
-              }}
-            />
-
-            {/* Max Button */}
-            <TouchableOpacity
-              onPress={() => setAmount(String(goal.maxContribution))}
-              style={{
-                paddingHorizontal: 10,
+                flexDirection: "row",
+                alignItems: "center",
+                borderBottomWidth: 1.5,
+                borderBottomColor: "#ccc",
                 paddingVertical: 4,
-                borderRadius: 8,
-                backgroundColor: "#1164fd",
-                marginLeft: 8,
+                marginBottom: 20
               }}
             >
-              <Text style={{ color: "white", fontWeight: "600" }}>Max</Text>
-            </TouchableOpacity>
-          </View>
+              <Text style={{ fontSize: 20, color: theme.foreground, marginRight: 4 }}>$</Text>
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            onPress={handleSubmitContribution}
-            disabled={submitting || !canContribute}
-            style={{
-              backgroundColor:
-                !canContribute
-                  ? "#9aa39a"      // disabled gray
-                  : submitting
-                  ? "#7ee9a0"
-                  : "#03ce40ff",
-              borderRadius: 8,
-              paddingVertical: 12,
-              alignItems: "center",
-              opacity: !canContribute ? 0.6 : 1,
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
-              {!canContribute
-                ? "Already Contributed"
-                : submitting
-                ? "Contributing..."
-                : "Contribute"}
-            </Text>
-          </TouchableOpacity>
-
-
-          {goal.missingAmount > 0 && (
-            <View style={{marginTop: 40}}>
-              <Text style={{ color: theme.foreground, fontSize: 16, fontWeight: "600", marginBottom: 8, }} >Amend goal</Text>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  borderBottomWidth: 1.5,
-                  borderBottomColor: "#ccc",
-                  paddingVertical: 4,
-                  marginBottom: 20,
-                }}
-              >
-                <Text style={{ fontSize: 20, color: "#000", marginRight: 4 }}>$</Text>
-
-                <TextInput
-                  value={amendAmount}
-                  onChangeText={(text) => {
-                    let cleaned = text.replace(/[^0-9]/g, "");
-                    if (cleaned === "") {
-                      setAmendAmount("");
-                      return;
-                    }
-                    let num = Number(cleaned);
-                    if (num > goal.missingAmount) {
-                      num = goal.missingAmount;
-                    }
-                    setAmendAmount(String(num));
-                  }}
-                  keyboardType="number-pad"
-                  placeholder="0"
-                  placeholderTextColor="#999"
-                  style={{
-                    flex: 1,
-                    fontSize: 20,
-                    color: "#000",
-                    paddingVertical: 0,
-                  }}
-                />
-
-                <TouchableOpacity
-                  onPress={() =>
-                    setAmendAmount(String(goal.missingAmount ?? 0))
+              {/* Contribution Input */}
+              <TextInput
+                value={amount}
+                onChangeText={(text) => {
+                  let cleaned = text.replace(/[^0-9]/g, "");
+                  if (cleaned === "") {
+                    setAmount("");
+                    return;
                   }
-                  style={{
-                    paddingHorizontal: 10,
-                    paddingVertical: 4,
-                    borderRadius: 8,
-                    backgroundColor: "#1164fd",
-                    marginLeft: 8,
-                  }}
-                >
-                  <Text style={{ color: "white", fontWeight: "600" }}>Max</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Catch-up submit button */}
-              <TouchableOpacity
-                onPress={handleSubmitAmend}
-                disabled={amendSubmitting}
+                  let num = Number(cleaned);
+                  if (num > goal.maxContribution) {
+                    num = goal.maxContribution;
+                  }
+                  setAmount(String(num));
+                }}
+                keyboardType="number-pad"
+                returnKeyType="done"
+                placeholder="0"
+                placeholderTextColor="#999"
                 style={{
-                  backgroundColor: amendSubmitting ? "#fbbf94" : "#f97316",
+                  flex: 1,
+                  fontSize: 20,
+                  color: theme.foreground,
+                  paddingVertical: 0,
+                }}
+              />
+
+              {/* Max Button */}
+              <TouchableOpacity
+                onPress={() => setAmount(String(goal.maxContribution))}
+                style={{
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
                   borderRadius: 8,
-                  paddingVertical: 12,
-                  alignItems: "center",
-                  marginBottom: 16,
+                  backgroundColor: "#1164fd",
+                  marginLeft: 8,
                 }}
               >
-                <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }} >
-                  {amendSubmitting ? "Amending..." : "Amend"}
-                </Text>
+                <Text style={{ color: "white", fontWeight: "600" }}>Max</Text>
               </TouchableOpacity>
             </View>
-          )}
-        </Accordion>
 
-        {/* History accordion */}
-        <Accordion title="History">
-          <View style={{ backgroundColor: theme.background, padding: 12, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 3, elevation: 1, }}>
-            <Text style={{ color: theme.foreground, fontSize: 18, fontWeight: "700", marginBottom: 8, }} >Past Contributions</Text>
-
-            {contributions.length === 0 ? (
-              <Text style={{ color: "grey" }}>No contributions yet.</Text>
-            ) : (
-              <FlatList
-                data={contributions}
-                keyExtractor={(item) => item.id}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => (
-                  <View style={{ height: 1, backgroundColor: "#eee", marginVertical: 8, }} />
-                )}
-                renderItem={({ item }) => {
-                  const ts = item.createdAt as Timestamp | undefined;
-                  const dateObj = ts?.toDate?.();
-                  const dateStr =
-                    dateObj instanceof Date ? dateObj.toLocaleString(undefined, {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "numeric",
-                    }) : "—";
-                  const amt = typeof item.amount === "number" ? item.amount : 0;
-
-                  const type = (item as any).type as ContributionType | undefined;
-                  const label =
-                    type === "amendment" ? "Amendment" : "Contribution";
-                  return (
-                    <View style={{ paddingVertical: 6 }}>
-                      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", }} >
-                        <Text style={{ color: theme.foreground, fontWeight: "600" }}>${amt}</Text>
-                        
-                        <Text style={{ color: "grey", fontSize: 12 }}>{dateStr}</Text>
-                      </View>
-                      <Text style={{ color: theme.foreground, fontWeight: "500" }}>{label}</Text>
-                    </View>
-                  );
-                }}
-                contentContainerStyle={{ paddingBottom: 12 }}
-              />
-            )}
-          </View>
-        </Accordion>
-
-        {/* Edit accordion */}
-        <Accordion title="Edit">
-          <View>
-            {/* Name */}
-            <Text style={{ color: theme.foreground, fontSize: 14, marginBottom: 6, }} >
-              Goal Name
-            </Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="e.g. Emergency Fund"
-              style={{
-                color: theme.foreground,
-                borderWidth: 1,
-                borderColor: "#ccc",
-                borderRadius: 8,
-                padding: 10,
-                fontSize: 16,
-                marginBottom: 12,
-              }}
-              returnKeyType="done"
-            />
-
-            {/* Target */}
-            <Text style={{ color: theme.foreground, fontSize: 14, marginBottom: 6, }} >
-              Goal Category
-            </Text>
-            <Selector
-              options={[
-                {label: "None", value: "none"},
-                {label: "Recreation", value: "recreation"},
-                {label: "Dining", value: "dining"},
-                {label: "Gift", value: "gift"},
-                {label: "Travel", value: "travel"},
-                {label: "Personal", value: "personal"},
-                {label: "Educational", value: "educational"},
-                {label: "Utility", value: "utility"},
-                {label: "Important", value: "important"},
-              ]}
-              selectedValue={category}
-              onChange={(value) => setCategory(value)}
-              horizontal={true}
-            />
-
-            {/* Save Button */}
+            {/* Submit Button */}
             <TouchableOpacity
-              onPress={handleSave}
-              disabled={saving}
+              onPress={handleSubmitContribution}
+              disabled={submitting || !canContribute}
               style={{
-                backgroundColor: saving ? "#9ec7ff" : "#007AFF",
+                backgroundColor:
+                  !canContribute
+                    ? "#9aa39a"      // disabled gray
+                    : submitting
+                    ? "#7ee9a0"
+                    : "#03ce40ff",
                 borderRadius: 8,
                 paddingVertical: 12,
                 alignItems: "center",
-                marginTop: 16,
+                opacity: !canContribute ? 0.6 : 1,
               }}
             >
-              <Text style={{ color: theme.foreground, fontSize: 16, fontWeight: "600", }} >
-                {saving ? "Saving…" : "Save Changes"}
+              <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+                { isCompleted
+                  ? "Completed"
+                  : !canContribute
+                  ? "Already Contributed"
+                  : submitting
+                  ? "Contributing..."
+                  : "Contribute"}
               </Text>
             </TouchableOpacity>
-          </View>
-        </Accordion>
-      </ScrollView>
+
+
+            {goal.missingAmount > 0 && (
+              <View style={{marginTop: 40}}>
+                <Text style={{ color: theme.foreground, fontSize: 16, fontWeight: "600", marginBottom: 8, }} >Amend goal</Text>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    borderBottomWidth: 1.5,
+                    borderBottomColor: "#ccc",
+                    paddingVertical: 4,
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text style={{ fontSize: 20, color: theme.foreground, marginRight: 4 }}>$</Text>
+
+                  <TextInput
+                    value={amendAmount}
+                    onChangeText={(text) => {
+                      let cleaned = text.replace(/[^0-9]/g, "");
+                      if (cleaned === "") {
+                        setAmendAmount("");
+                        return;
+                      }
+                      let num = Number(cleaned);
+                      if (num > goal.missingAmount) {
+                        num = goal.missingAmount;
+                      }
+                      setAmendAmount(String(num));
+                    }}
+                    keyboardType="number-pad"
+                    placeholder="0"
+                    placeholderTextColor="#999"
+                    style={{
+                      flex: 1,
+                      fontSize: 20,
+                      color: theme.foreground,
+                      paddingVertical: 0,
+                    }}
+                  />
+
+                  <TouchableOpacity
+                    onPress={() =>
+                      setAmendAmount(String(goal.missingAmount ?? 0))
+                    }
+                    style={{
+                      paddingHorizontal: 10,
+                      paddingVertical: 4,
+                      borderRadius: 8,
+                      backgroundColor: "#1164fd",
+                      marginLeft: 8,
+                    }}
+                  >
+                    <Text style={{ color: "white", fontWeight: "600" }}>Max</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Amend submit button */}
+                <TouchableOpacity
+                  onPress={handleSubmitAmend}
+                  disabled={amendSubmitting}
+                  style={{
+                    backgroundColor: amendSubmitting ? "#fbbf94" : "#f97316",
+                    borderRadius: 8,
+                    paddingVertical: 12,
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }} >
+                    {amendSubmitting ? "Amending..." : "Amend"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </Accordion>
+
+          {/* History accordion */}
+          <Accordion 
+            title="History"
+            containerStyle={{backgroundColor: theme.background}}
+            titleStyle={{color: theme.foreground}}
+          >
+            <View style={{ backgroundColor: theme.background, padding: 12, borderRadius: 12, shadowColor: "#000", shadowOpacity: 0.06, shadowRadius: 3, elevation: 1, }}>
+              <Text style={{ color: theme.foreground, fontSize: 18, fontWeight: "700", marginBottom: 8, }} >Past Contributions</Text>
+
+              {contributions.length === 0 ? (
+                <Text style={{ color: "grey" }}>No contributions yet.</Text>
+              ) : (
+                <FlatList
+                  data={contributions}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => (
+                    <View style={{ height: 1, backgroundColor: "#eee", marginVertical: 8, }} />
+                  )}
+                  renderItem={({ item }) => {
+                    const ts = item.createdAt as Timestamp | undefined;
+                    const dateObj = ts?.toDate?.();
+                    const dateStr =
+                      dateObj instanceof Date ? dateObj.toLocaleString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                      }) : "—";
+                    const amt = typeof item.amount === "number" ? item.amount : 0;
+
+                    const type = (item as any).type as ContributionType | undefined;
+                    const label =
+                      type === "amendment" ? "Amendment" : "Contribution";
+                    return (
+                      <View style={{ paddingVertical: 6 }}>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", }} >
+                          <Text style={{ color: theme.foreground, fontWeight: "600" }}>${amt}</Text>
+                          
+                          <Text style={{ color: "grey", fontSize: 12 }}>{dateStr}</Text>
+                        </View>
+                        <Text style={{ color: theme.foreground, fontWeight: "500" }}>{label}</Text>
+                      </View>
+                    );
+                  }}
+                  contentContainerStyle={{ paddingBottom: 12 }}
+                />
+              )}
+            </View>
+          </Accordion>
+
+          {/* Edit accordion */}
+          <Accordion 
+            title="Edit"
+            containerStyle={{backgroundColor: theme.background}}
+            titleStyle={{color: theme.foreground}}
+          >
+            <View>
+              {/* Name */}
+              <Text style={{ color: theme.foreground, fontSize: 14, marginBottom: 6, }} >
+                Goal Name
+              </Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="e.g. Emergency Fund"
+                style={{
+                  color: theme.foreground,
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  borderRadius: 8,
+                  padding: 10,
+                  fontSize: 16,
+                  marginBottom: 12,
+                }}
+                returnKeyType="done"
+              />
+
+              {/* Target */}
+              <Text style={{ color: theme.foreground, fontSize: 14, marginBottom: 6, }} >
+                Goal Category
+              </Text>
+              <Selector
+                options={[
+                  {label: "None", value: "none"},
+                  {label: "Recreation", value: "recreation"},
+                  {label: "Dining", value: "dining"},
+                  {label: "Gift", value: "gift"},
+                  {label: "Travel", value: "travel"},
+                  {label: "Personal", value: "personal"},
+                  {label: "Educational", value: "educational"},
+                  {label: "Utility", value: "utility"},
+                  {label: "Important", value: "important"},
+                ]}
+                selectedValue={category}
+                onChange={(value) => setCategory(value)}
+                horizontal={true}
+              />
+
+              {/* Save Button */}
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={saving}
+                style={{
+                  backgroundColor: saving ? "#9ec7ff" : "#007AFF",
+                  borderRadius: 8,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                  marginTop: 16,
+                }}
+              >
+                <Text style={{ color: "white", fontSize: 16, fontWeight: "600", }} >
+                  {saving ? "Saving…" : "Save Changes"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Accordion>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

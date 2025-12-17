@@ -1,14 +1,14 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import {
-    LayoutAnimation,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextStyle,
-    UIManager,
-    View,
-    ViewStyle,
+  LayoutAnimation,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextStyle,
+  UIManager,
+  View,
+  ViewStyle,
 } from "react-native";
 
 type AccordionProps = {
@@ -67,7 +67,7 @@ const Accordion: React.FC<AccordionProps> = ({
           {rightElement ? (
             rightElement
           ) : (
-            <Text style={styles.icon}>{open ? "−" : "+"}</Text>
+            <Text style={[styles.icon, titleStyle]}>{open ? "−" : "+"}</Text>
           )}
         </View>
       </Pressable>

@@ -1,7 +1,8 @@
-import { Goal, getContributionWindow, getGoalScheduleInfo } from "@/data/goals";
+import { getContributionWindow, getGoalScheduleInfo, Goal } from "@/data/goals";
+import { THEME } from "@/lib/theme";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, Text, TouchableOpacity, useColorScheme, View, ViewStyle } from "react-native";
 
 type Props = {
   item: Goal;
@@ -11,21 +12,27 @@ type Props = {
   pressDisabled?: boolean;
 };
 
+type BannerStatusKey = "pending" | "fulfilled" | "completed" | "default";
+
 const INTERVAL_STATUS_CONFIG: Record<
-  NonNullable<Goal["intervalStatus"]> | "default",
+  BannerStatusKey,
   { label: string; color: string }
 > = {
-  pending: { label: "pending contribution", color: "#999999ff" },
+  pending:   { label: "pending contribution",   color: "#999999ff" },
   fulfilled: { label: "submitted contribution", color: "#1164fdff" },
-  default: { label: "interval status", color: "#d31717ff" },            // fallback
+  completed: { label: "completed!",         color: "#22c55eff" },
+  default:   { label: "interval status",        color: "#d31717ff" },
 };
 
-export default function GoalCard({ item, theme, style, onPress, pressDisabled }: Props) {
+export default function GoalCard({ item, style, onPress, pressDisabled }: Props) {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? THEME.dark : THEME.light;
+
+  const isCompletedByAmount = item.currentAmount >= item.targetAmount;
+  const isCompleted = item.goalStatus === "completed" || isCompletedByAmount;
 
   const [now, setNow] = useState(() => new Date());
-
-  // Single source of truth for contribution window
   const { canContribute, nextDate, msUntilNext } = getContributionWindow(item, now);
 
   // Auto-refresh when the interval ends
@@ -41,9 +48,8 @@ export default function GoalCard({ item, theme, style, onPress, pressDisabled }:
 
   // Banner label text
   const nextContributionLabel = React.useMemo(() => {
-    if (canContribute) {
-      return "Available now";
-    }
+    if (isCompleted) return "";
+    if (canContribute) return "Available now";
 
     const formatted = nextDate.toLocaleDateString(undefined, {
       weekday: "short",
@@ -55,8 +61,12 @@ export default function GoalCard({ item, theme, style, onPress, pressDisabled }:
   }, [canContribute, nextDate]);
 
   // Effective status for the banner (flip back to pending when window is open)
-  const effectiveStatusKey: keyof typeof INTERVAL_STATUS_CONFIG =
-    canContribute ? "pending" : (item.intervalStatus ?? "default");
+  const effectiveStatusKey: BannerStatusKey = (() => {
+    if (isCompleted) return "completed";
+    if (canContribute) return "pending";
+
+    return (item.intervalStatus as BannerStatusKey) ?? "default";
+  })();
 
   const intervalStatusValue = INTERVAL_STATUS_CONFIG[effectiveStatusKey];
 
@@ -80,10 +90,6 @@ export default function GoalCard({ item, theme, style, onPress, pressDisabled }:
   // Widths in px
   const savedWidth = barWidth * savedRatio;
   const missingWidth = barWidth * missingRatio;
-
-
-
-
 
   return (
     <View style={style}>
@@ -110,7 +116,7 @@ export default function GoalCard({ item, theme, style, onPress, pressDisabled }:
                   params: { id: item.id },
                 }))
         }
-        style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border, }, style, ]}>
+        style={[styles.card, { backgroundColor: theme.background, borderColor: theme.border, }, style, ]}>
 
         {/* HEADER */}
           {/* Goal Name & Target Amount */}
@@ -127,12 +133,10 @@ export default function GoalCard({ item, theme, style, onPress, pressDisabled }:
 
             {/* Category & Max Contribution */}
           <View style={[styles.rowContainer, {marginBottom: 8}]}>
-            <View style={[styles.categoryTag]}>
-              {item.category ? (
-                <Text style={[styles.tagText, {color: "#336affff"}]} numberOfLines={1}>
-                  {item.category}
-                </Text>
-              ) : <Text style={{ color: theme.foreground, fontSize: 12 }} numberOfLines={1}></Text>}
+            <View style={[styles.categoryTag, (!item.category || item.category === "none") && { opacity: 0 }]}>
+              {item.category && item.category !== "none" ? (
+                <Text style={[styles.tagText, {color: "#336affff"}]} numberOfLines={1}>{item.category}</Text>
+              ) : <Text style={[styles.tagText, {opacity: 0}]} numberOfLines={1}>placeholder</Text>}
             </View>
 
             <Text style={{ color: theme.foreground, fontSize: 12 }} numberOfLines={1}>${item.maxContribution} {item.interval}</Text>
@@ -172,7 +176,7 @@ export default function GoalCard({ item, theme, style, onPress, pressDisabled }:
               )}
 
               {/* Base Progress track */}
-              <View style={{ height: 10, width: "100%", backgroundColor: theme.border, borderRadius: 10, overflow: "hidden", }} >
+              <View style={{ height: 10, width: "100%", backgroundColor: theme.muted, borderRadius: 10, overflow: "hidden", }} >
                 {/* Left fill – saved */}
                 <View style={[styles.barFiller, { left: 0,  width: savedWidth, backgroundColor: "#01dd01ff" }]} />
 
