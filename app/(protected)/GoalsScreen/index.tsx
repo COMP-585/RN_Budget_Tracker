@@ -1,6 +1,5 @@
 import CoinCounter from "@/components/coinCounter";
 import { Text } from "@/components/ui/text";
-import CurrencyIcon from "@/assets/images/currency.png";
 import Accordion from "@/components/ui/accordion";
 import GoalCard from "@/components/ui/goalcard";
 import GoalFormModal, { GoalFormValues } from "@/components/ui/goalformmodal";
@@ -11,7 +10,7 @@ import { listenToUserProfile, UserProfile } from "@/data/users";
 import { THEME } from "@/lib/theme";
 import { Plus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from "react-native";
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, useColorScheme, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function GoalsIndex() {
