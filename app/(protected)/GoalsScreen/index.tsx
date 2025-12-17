@@ -1,9 +1,9 @@
 import CoinCounter from "@/components/coinCounter";
+import { Text } from "@/components/ui/text";
+import Accordion from "@/components/ui/accordion";
 import GoalCard from "@/components/ui/goalcard";
 import GoalFormModal, { GoalFormValues } from "@/components/ui/goalformmodal";
 import Header from "@/components/ui/header";
-import { Text } from "@/components/ui/text";
-import Accordion from "@/components/ui/accordion";
 import Selector from "@/components/ui/selector";
 import { createGoal, getContributionWindow, Goal, listenGoals } from "@/data/goals";
 import { listenToUserProfile, UserProfile } from "@/data/users";
