@@ -7,6 +7,8 @@ import { SplashScreen, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "nativewind";
 import React, { useEffect } from "react";
+import Toast from  "react-native-toast-message"
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -41,6 +43,8 @@ export default function RootLayout() {
           />
         </Stack.Protected>
       </Stack>
+            <Toast position="top" topOffset={50} />
+
       <PortalHost />
     </ThemeProvider>
   );

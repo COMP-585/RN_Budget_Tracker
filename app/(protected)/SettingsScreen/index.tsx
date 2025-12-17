@@ -163,15 +163,8 @@ export default function SettingsScreen() {
 
         <SettingsItem
           label="Change Password"
-          leftIcon={<KeyRound size={18} />}
+          leftIcon={<KeyRound size={18} color={theme.foreground}/>}
           onPress={handleChangePassword}
-        />
-        <View className="h-px bg-border/50 mx-4" />
-
-        <SettingsItem
-          label="Linked Accounts"
-          leftIcon={<Link2 size={18} color={theme.foreground} />}
-          onPress={() => {}}
         />
         <View className="h-px bg-border/50 mx-4" />
 
