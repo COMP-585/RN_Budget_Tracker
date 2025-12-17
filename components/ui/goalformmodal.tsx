@@ -226,7 +226,7 @@ export default function GoalFormModal({ visible, onClose, onSubmit }: Props) {
 
               <View style={styles.field}>
                 <View style={styles.rowContainer}>
-                  <Text style={[styles.body, {color: theme.foreground}]}>I'm saving for...</Text>
+                  <Text style={[styles.body, {color: theme.foreground}]}>I&apos;m saving for...</Text>
                 </View>
                 <TextInput
                   value={name}

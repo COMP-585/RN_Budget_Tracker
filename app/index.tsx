@@ -1,11 +1,11 @@
+import PetChoice from "@/components/ui/petChoice";
+import { Text } from "@/components/ui/text";
+import { handleSignUp } from "@/data/users";
 import { auth } from "@/FirebaseConfig";
 import { THEME } from "@/lib/theme";
 import { useAuth } from "@/lib/useAuth";
 import { router } from "expo-router";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import React, { useRef, useState } from "react";
 import {
   Image,
@@ -18,8 +18,6 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { Text } from "@/components/ui/text";
-import { handleSignUp } from "@/data/users";
 
 export default function AuthScreen() {
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
@@ -29,15 +27,16 @@ export default function AuthScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
+  const [isCat, setIsCat] = useState(true);
 
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
 
   const signUp = async () => {
     try {
-      handleSignUp(email, password)
-      console.log(user);
+      console.log("submitting: " + isCat);
+      handleSignUp(email, password, isCat);
     } catch (error: any) {
       console.log(error);
       alert("Sign up failed: " + error.message);
@@ -48,12 +47,15 @@ export default function AuthScreen() {
   const signIn = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      console.log(user);
     } catch (error: any) {
       console.log(error);
       alert("Sign in failed: " + error.message);
     } finally {
     }
+  };
+
+  const handlePetChoice = () => {
+    setIsCat(!isCat);
   };
 
   return (
@@ -90,15 +92,42 @@ export default function AuthScreen() {
               },
             ]}
           >
-            <Text style={[ styles.tabText, { color: activeTab === "login" ? theme.primary : theme.mutedForeground }]}>
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "login"
+                      ? theme.primary
+                      : theme.mutedForeground,
+                },
+              ]}
+            >
               Login
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setActiveTab("signup")}
-            style={[ styles.tab, { borderBottomColor: activeTab === "signup" ? theme.primary : "transparent" }]}>
-            <Text style={[ styles.tabText, { color: activeTab === "signup" ? theme.primary : theme.mutedForeground }]}>
+            style={[
+              styles.tab,
+              {
+                borderBottomColor:
+                  activeTab === "signup" ? theme.primary : "transparent",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "signup"
+                      ? theme.primary
+                      : theme.mutedForeground,
+                },
+              ]}
+            >
               Sign Up
             </Text>
           </TouchableOpacity>
@@ -149,7 +178,7 @@ export default function AuthScreen() {
           {activeTab === "login" && (
             <TouchableOpacity
               style={styles.forgotContainer}
-              onPress={() => router.push('/forgot-password')}
+              onPress={() => router.push("/forgot-password")}
             >
               <Text style={[styles.forgotText, { color: theme.primary }]}>
                 Forgot Password?
@@ -177,6 +206,11 @@ export default function AuthScreen() {
               returnKeyType="done"
               onSubmitEditing={signUp}
             />
+          )}
+
+          {/* Pet Choice Toggle - only for Sign Up */}
+          {activeTab === "signup" && (
+            <PetChoice onPress={handlePetChoice} isCat={isCat} theme={theme} />
           )}
         </View>
       </ScrollView>

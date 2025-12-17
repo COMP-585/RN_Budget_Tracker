@@ -110,7 +110,11 @@ export function getCoinsFromProgressDelta(options: {
   return coins;
 }
 
-export const handleSignUp = async (email: string, password: string) => {
+export const handleSignUp = async (
+  email: string,
+  password: string,
+  isCat: boolean
+) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -125,7 +129,7 @@ export const handleSignUp = async (email: string, password: string) => {
         {
           email: user.email,
           coins: 0,
-          currentPet: null,
+          currentPet: isCat === true ? "cat" : "dog",
           currentCostumeId: null,
           unlockedPets: [],
           unlockedCostumes: [],
