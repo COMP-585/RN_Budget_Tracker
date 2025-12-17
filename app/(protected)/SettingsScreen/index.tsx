@@ -188,13 +188,6 @@ export default function SettingsScreen() {
         <View className="h-px bg-border/50 mx-4" />
 
         <SettingsItem
-          label="Update Goals"
-          leftIcon={<Target size={18} color={theme.foreground} />}
-          onPress={() => {}}
-        />
-        <View className="h-px bg-border/50 mx-4" />
-
-        <SettingsItem
           label="Delete Profile"
           danger
           leftIcon={<Trash2 size={18} color={theme.foreground} />}
