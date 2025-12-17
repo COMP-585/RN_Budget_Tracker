@@ -182,12 +182,13 @@ export default function SettingsScreen() {
         />
         <View className="h-px bg-border/50 mx-4" />
 
-        <SettingsItem
-          label="Notification Preferences"
-          leftIcon={<Bell size={18} color={theme.foreground} />}
-          onPress={() => {}}
-        />
-        <View className="h-px bg-border/50 mx-4" />
+
+       <Link href="/SettingsScreen/notification-preferences" asChild>
+         <SettingsItem
+           label="Notification Preferences"
+           leftIcon={<Bell size={18} color={theme.foreground} />}
+         />
+       </Link>
 
         <SettingsItem
           label="Change Theme"
