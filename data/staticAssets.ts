@@ -20,3 +20,4 @@ export const staticPetCostumes = {
 };
 
 export const staticPetBg = require("assets/images/pet_bg.jpg");
+export const staticLogo = require("assets/images/logo.png");

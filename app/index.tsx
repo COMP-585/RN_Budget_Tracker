@@ -1,5 +1,6 @@
 import PetChoice from "@/components/ui/petChoice";
 import { Text } from "@/components/ui/text";
+import { staticLogo } from "@/data/staticAssets";
 import { handleSignUp } from "@/data/users";
 import { auth } from "@/FirebaseConfig";
 import { THEME } from "@/lib/theme";
@@ -71,7 +72,7 @@ export default function AuthScreen() {
         <View style={styles.logoContainer}>
           {/* Placeholder image (replace source with our own logo later) */}
           <Image
-            source={require("assets/images/splash-icon.png")}
+            source={staticLogo}
             style={styles.logo}
             resizeMode="contain"
           />
