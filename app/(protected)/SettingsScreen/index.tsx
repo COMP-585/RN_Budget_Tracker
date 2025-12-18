@@ -176,6 +176,9 @@ export default function SettingsScreen() {
          />
        </Link>
 
+       <View className="h-px bg-border/50 mx-4" />
+
+
         <SettingsItem
           label="Change Theme"
           leftIcon={<Palette size={18} color={theme.foreground} />}
