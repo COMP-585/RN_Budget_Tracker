@@ -9,7 +9,6 @@ An interactive, gamified budget tracker and money savings goals mobile applicati
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/db77c6cc-243a-485c-9620-de210c29e153" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/7c408fed-a424-42eb-afda-e225b7cdd7d9" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/6b177bdf-3800-4f5a-a507-7eb880ff98e6" />
-<img width="250" alt="image" src="https://github.com/user-attachments/assets/0ef33242-5064-48ab-a3f5-5ab718a8097f" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/d14f5155-bb5c-438d-9388-ce3c60cb8ba7" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/6054287d-59f8-4e37-9179-2735ba0c701a" />
 <img width="250" alt="image" src="https://github.com/user-attachments/assets/6c31d538-44f8-46ed-998a-9edb4566ec9c" />
